@@ -1,18 +1,17 @@
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.impute import SimpleImputer
 from imblearn.combine import SMOTEENN
 from collections import Counter
 import pandas as pd
-from sklearn.model_selection import train_test_split, ShuffleSplit,StratifiedKFold
-from sklearn.utils import resample, check_X_y, check_random_state
-from sklearn.utils import shuffle
+from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.utils import resample, check_X_y, check_random_state,shuffle
 import math
 import scipy.io as sio
-import pathlib
 from pathlib import Path
+from fri import genClassificationData
 import numpy as np
-from fri import genOrdinalRegressionData
-from sklearn.impute import SimpleImputer
-import re
+import os
 
 class Dataset(object):
     def __init__(
@@ -20,7 +19,7 @@ class Dataset(object):
         X,
         y,
         missingvals=True,
-        balance=False, # We dont need balancing if we do frequency binning from regression data which is balanced by definition
+        balance=True,
         standardize=True,
         random_state=None,
         test_size=0.2,
@@ -128,7 +127,7 @@ class Toyset(Dataset):
         self.random_state = random_state
         self.noise = noise
 
-        X, y = genOrdinalRegressionData(
+        X, y = genClassificationData(
             n_features=n_features,
             n_strel=n_strel,
             n_redundant=n_redundant,
@@ -160,31 +159,21 @@ class Toyset(Dataset):
         self.bootstraps = bs
         return self.bootstraps
 
-def get_datasets(seed):
 
-    datasets = {
-        # "flip": set_flip,
-        # "t21": set_t21,
-        # "spectf": set_spectf,
-        # "wbc": set_WBC,
-    }
-    datasets = import_ordinal_sets_with_folds()
 
-    return datasets
-
-# toy_set_params = {
-#             "Set1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
-#             "Set2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
-#             "Set3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
-#             "Set4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
-#             "Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
-#             "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
-#             "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
-#         }
 toy_set_params = {
-            "Set8": {"n": 10000, "strong": 10, "weak": 20, "irr": 10},
-            "Set9": {"n": 10000, "strong": 10, "weak": 20, "irr": 200},
+            "Set1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
+            "Set2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
+            "Set3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
+            "Set4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
+            "Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
+            "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
+            "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
         }
+#toy_set_params = {
+#            "Set8": {"n": 10000, "strong": 10, "weak": 20, "irr": 10},
+#            "Set9": {"n": 10000, "strong": 10, "weak": 20, "irr": 200},
+#        }
 
 def get_toy_datasets(seed, toy_set_params=toy_set_params, noise=0.0):
     datasets = {}
@@ -205,225 +194,224 @@ def get_toy_datasets(seed, toy_set_params=toy_set_params, noise=0.0):
     return datasets
 
 
-def freq_binning(X_reg, y_reg, random_state, n_bins=10):
+def import_Fibrosis(random_state, **kwargs):
+    NA_THRESH = 0.92
+    table = pd.read_csv("../data/Fibrosis.csv")
 
-    n, d = X_reg.shape
-    bin_size = int(np.floor(n / n_bins))
-    rest = int(n - (bin_size * n_bins))
+    d = table.shape[1]
+    table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
 
-    # Sort the target values and rearange the data accordingly
-    sort_indices = np.argsort(y_reg)
-    X = X_reg[sort_indices]
-    y = y_reg[sort_indices]
+    # Our predictor variable
+    Y_raw = table.Fibrosis
+    X_raw = table.drop("Fibrosis", 1)
 
-    # Assign ordinal classes as target values
-    for i in range(n_bins):
-        if i < rest:
-            y[(bin_size + 1) * i:] = i
-        else:
-            y[(bin_size * i) + rest:] = i
-
-    X, y = shuffle(X, y, random_state=random_state)
-
-    return X, y
+    dataset = Dataset(X_raw, Y_raw, random_state=random_state, **kwargs)
+    return dataset
 
 
-def import_train_test_splits(path):
+def import_colposcopy(random_state, **kwargs):
+    NA_THRESH = 0.92
+    table = pd.read_csv("../data/Quality Assessment - Digital Colposcopy/green.csv")
 
-    path = pathlib.Path(path)
-    n = len(list(path.glob("train_*.*")))
+    d = table.shape[1]
+    table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
+    table = table[table.columns[~table.columns.str.contains("expert")]]
+    # Our predictor variable
+    Y_raw = table.consensus
+    X_raw = table.drop("consensus", 1)
 
-    splits = [0]*n
+    dataset = Dataset(X_raw, Y_raw, random_state=random_state, **kwargs)
+    return dataset
 
-    for filepath in sorted(path.glob("train_*.*")):
-        s = filepath
-        split = re.compile(r'(\d+)$').search(str(s)).group(1)
-        
-        data = np.loadtxt(s)
-        X = data[:,:-1]
-        y = data[:,-1]
-        y = y-1
-        splits[int(split)] = {"train_X":X, "train_y":y}
+def import_cervical(random_state, **kwargs):
+    NA_THRESH = 0.92
 
-    for filepath in sorted(path.glob("test_*.*")):
-        s = filepath
-        split = re.compile(r'(\d+)$').search(str(s)).group(1)
-        
-        data = np.loadtxt(s)
-        X = data[:,:-1]
-        y = data[:,-1]
-        y = y-1
-        splits[int(split)].update({"test_X":X, "test_y":y})
+    ds = pd.read_csv("../data/risk_factors_cervical_cancer.csv")
+    y = ds.Schiller
 
-    return list(splits)
+    X = ds.iloc[:,:-4]
+    X[X=="?"]=np.nan
+    #X = X.fillna(0)
+
+    dataset = Dataset(X, y, random_state=random_state, **kwargs)
+    return dataset
 
 
-def import_ordinal_sets_with_folds():
 
-        data_paths = {
-        "Contact-lenses": {"path": '../../data/ordinal-classification-datasets/contact-lenses/gpor'},
-        "Eucalyptus": {"path": '../../data/ordinal-classification-datasets/eucalyptus/gpor'},
-        "Newthyroid": {"path": '../../data/ordinal-classification-datasets/newthyroid/gpor'},
-        "Pasture": {"path": '../../data/ordinal-classification-datasets/pasture/gpor'},
-        "Squash-stored": {"path": '../../data/ordinal-classification-datasets/squash-stored/gpor'},
-        "Squash-unstored": {"path": '../../data/ordinal-classification-datasets/squash-unstored/gpor'},
-        "TAE": {"path": '../../data/ordinal-classification-datasets/tae/gpor'},
-        "Winequality-red": {"path": '../../data/ordinal-classification-datasets/winequality-red/gpor'},
-        "Bondrate": {"path": '../../data/ordinal-classification-datasets/bondrate/gpor'},
-        "Automobile": {"path": '../../data/ordinal-classification-datasets/automobile/gpor'},
-        }
-        datasets = {}
-        for name, params in data_paths.items():
-            path = params["path"]
-            splits = import_train_test_splits(path)
-            for split in splits:
-                X_train = split["train_X"]
-                X_test = split["test_X"]
-                scaler = StandardScaler()
-                scaler.fit(X_train)
-                X_train = scaler.transform(X_train)
-                X_test = scaler.transform(X_test)
-                split["train_X"] = X_train
-                split["test_X"] = X_test
 
-            datasets[name] = splits
 
-        return datasets
 
-def import_benchmark_data(random_state, **kwargs):
+def import_FLIP(random_state, **kwargs):
+    NA_THRESH = 0.6
+    path = "../data/FLIP.csv"
+    joined = os.path.join(os.path.dirname(__file__), path)
+    table = pd.read_csv(joined)
 
-    #
-    #
-    # regression sets with frequency binning
-    #################
-    data_paths_1 = {
-        "Pyrimidines": {"path": '../../data/Pyrimidines/pyrim.data', "delimiter": ',', "test": 24, "d": 27},
-        "MachineCPU": {"path": '../../data/MachineCPU/machine.data', "delimiter": ',', "test": 59, "d": 6},
-        "Boston": {"path": '../../data/Boston/housing.data', "delimiter": ',', "test": 206, "d": 13},
-        "Computer": {"path": '../../data/Computer/cpu_act.data', "delimiter": ',', "test": 4182, "d": 21},
-        "California": {"path": '../../data/California/cal_housing.data', "delimiter": ',', "test": 15640, "d": 8},
+    d = table.shape[1]
+    table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
+
+    # Our predictor variable
+    Y_raw = table.FLIP_k
+    no_class = Y_raw[Y_raw.isnull()].index
+    Y_raw = Y_raw.drop(no_class)
+
+    X_raw = table.drop("FLIP_k", 1)
+    X_raw = X_raw.drop(no_class)
+
+    dataset = Dataset(X_raw, Y_raw, random_state=random_state, **kwargs)
+    return dataset
+
+
+def import_wbc(random_state, **kwargs):
+    dset = pd.read_csv(
+        "../data/wdbc.data", index_col=0, header=None
+    )
+
+    y = LabelEncoder().fit_transform(dset[1]).flatten()
+
+    X = dset.drop(1, axis=1)
+
+    dataset = Dataset(X, y, random_state=random_state, **kwargs)
+    return dataset
+
+
+def import_T21(random_state, **kwargs):
+    random_state = check_random_state(random_state)
+    NA_THRESH = 0.9
+    # cache big file
+    file = Path("../data/T21.feather")
+    if file.exists():
+        table = pd.read_feather(str(file))
+    else:
+        table = pd.read_excel(
+            io="../data/data_50K_raw_N_T21.xlsx"
+        )
+        table.to_feather(str(file))
+
+    d = table.shape[1]
+    table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
+
+    # Our predictor variable
+    Y_raw = table.Class
+    Y_raw = Y_raw.replace("a-T21", 1)
+    Y_raw = Y_raw.replace("Normal", 0)
+
+    X = table.drop("Class", 1)
+    X = X.drop(X.columns[19:], 1)
+    X = X.drop("ID Sort", 1)
+
+    # Downsample maj. class (50k) to 1k
+    majority_class = Y_raw[Y_raw == 0].index
+    state = random_state
+    keep = 1000
+    n_majority = len(majority_class) - keep
+    drop_index = state.choice(majority_class, size=n_majority, replace=False)
+    X = X.drop(drop_index)
+    Y_raw = Y_raw.drop(drop_index)
+
+    dataset = Dataset(X, Y_raw, random_state=random_state, **kwargs)
+    return dataset
+
+
+def import_SPECTF(random_state, **kwargs):
+    random_state = check_random_state(random_state)
+    NA_THRESH = 0.9
+
+    table = pd.read_csv("../data/SPECTF.csv")
+
+    d = table.shape[1]
+    table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
+
+    # Our predictor variable
+    Y_raw = table["0"]
+    no_class = Y_raw[Y_raw.isnull()].index
+    Y_raw = Y_raw.drop(no_class)
+
+    X_raw = table.drop(table.columns[0], axis=1)
+    X_raw = X_raw.drop(X_raw.columns[0], axis=1)
+    names = [
+        "F1R",
+        "F1S",
+        "F2R",
+        "F2S",
+        "F3R",
+        "F3S",
+        "F4R",
+        "F4S",
+        "F5R",
+        "F5S",
+        "F6R",
+        "F6S",
+        "F7R",
+        "F7S",
+        "F8R",
+        "F8S",
+        "F9R",
+        "F9S",
+        "F10R",
+        "F10S",
+        "F11R",
+        "F11S",
+        "F12R",
+        "F12S",
+        "F13R",
+        "F13S",
+        "F14R",
+        "F14S",
+        "F15R",
+        "F15S",
+        "F16R",
+        "F16S",
+        "F17R",
+        "F17S",
+        "F18R",
+        "F18S",
+        "F19R",
+        "F19S",
+        "F20R",
+        "F20S",
+        "F21R",
+        "F21S",
+        "F22R",
+        "F22S",
+    ]
+
+    names = np.array(names)
+
+    dataset = Dataset(X_raw, Y_raw, random_state=random_state, names=names, **kwargs)
+    return dataset
+
+
+def get_datasets(seed):
+    print("FIBROSIS")
+    set_fibrosis = import_Fibrosis(seed)
+    print("FLIP")
+    set_flip = import_FLIP(seed)
+    print("T21")
+    set_t21 = import_T21(seed)
+    print("SPECTF")
+    set_spectf = import_SPECTF(seed)
+    print("WBC")
+    set_WBC = import_wbc(seed)
+    print("colposcopy")
+    set_col = import_colposcopy(seed)
+    print("cervical")
+    set_cervical = import_cervical(seed)
+
+    datasets = {
+        "fibrosis": set_fibrosis,
+        "colposcopy": set_col,
+        "cervical": set_cervical,
+        "flip": set_flip,
+        "t21": set_t21,
+        "spectf": set_spectf,
+        "wbc": set_WBC,
     }
-    data_paths_2 = {
-        "Bank": {"path": '../../data/Bank/bank32full.data', "test": 5182, "d": 32},
-        "Census": {"path": '../../data/Census/census-house/house-price-8L/Prototask.data', "test": 16784, "d": 8},
-    }
-
-    #
-    #
-    # Ordinal regression Sets
-    ##########
-    data_paths_3 = {
-        "Contact-lenses": {"path": '../../data/ordinal-classification-datasets/contact-lenses/gpor/test_contact-lenses.0',
-                           "path2": '../../data/ordinal-classification-datasets/contact-lenses/gpor/train_contact-lenses.0',
-                           "test": 0.25, "d": 6},
-        "Eucalyptus": {"path": '../../data/ordinal-classification-datasets/eucalyptus/gpor/test_eucalyptus.0',
-                       "path2": '../../data/ordinal-classification-datasets/eucalyptus/gpor/train_eucalyptus.0',
-                       "test": 0.25, "d": 91},
-        "Newthyroid": {"path": '../../data/ordinal-classification-datasets/newthyroid/gpor/test_newthyroid.0',
-                       "path2": '../../data/ordinal-classification-datasets/newthyroid/gpor/train_newthyroid.0',
-                       "test": 0.25, "d": 5},
-        "Pasture": {"path": '../../data/ordinal-classification-datasets/pasture/gpor/test_pasture.0',
-                    "path2": '../../data/ordinal-classification-datasets/pasture/gpor/train_pasture.0',
-                    "test": 0.25, "d": 5},
-        "Squash-stored": {"path": '../../data/ordinal-classification-datasets/squash-stored/gpor/test_squash-stored.0',
-                          "path2": '../../data/ordinal-classification-datasets/squash-stored/gpor/train_squash-stored.0',
-                          "test": 0.25, "d": 51},
-        "Squash-unstored": {"path": '../../data/ordinal-classification-datasets/squash-unstored/gpor/test_squash-unstored.0',
-                            "path2": '../../data/ordinal-classification-datasets/squash-unstored/gpor/train_squash-unstored.0',
-                            "test": 0.25, "d": 52},
-        "TAE": {"path": '../../data/ordinal-classification-datasets/tae/gpor/test_tae.0',
-                "path2": '../../data/ordinal-classification-datasets/tae/gpor/train_tae.0',
-                "test": 0.25, "d": 54},
-        "Winequality-red": {"path": '../../data/ordinal-classification-datasets/winequality-red/gpor/test_winequality-red.0',
-                            "path2": '../../data/ordinal-classification-datasets/winequality-red/gpor/train_winequality-red.0',
-                            "test": 0.25, "d": 11}
-    }
-
-    data_paths_4 = {
-        "Bondrate": {"path": '../../data/ordinal-classification-datasets/bondrate/gpor/test_bondrate.0',
-                     "path2": '../../data/ordinal-classification-datasets/bondrate/gpor/train_bondrate.0',
-                     "test": 0.25, "d": 37}
-    }
-
-    data_paths_5 = {
-        "Automobile": {"path": '../../data/ordinal-classification-datasets/automobile/gpor/test_automobile.0',
-                       "path2": '../../data/ordinal-classification-datasets/automobile/gpor/train_automobile.0',
-                       "test": 0.25, "d": 71},
-    }
-
-    datasets = {}
-
-    FOLDS = 25
-    # for name, params in data_paths_1.items():
-    #     data = np.loadtxt(params["path"], delimiter=params["delimiter"])
-    #     X, y = freq_binning(data[:,0:params["d"]], data[:,-1], random_state)
-    #     dataset = Dataset(X,y,random_state=random_state, test_size=params["test"], **kwargs)
-    #     repeated_folds = dataset.get_all_cv_folds(folds=FOLDS)
-    #     dataset.folds = repeated_folds
-    #     datasets[name] = dataset
-
-    # for name, params in data_paths_2.items():
-    #     data = np.loadtxt(params["path"])
-    #     X, y = freq_binning(data[:, 0:params["d"]], data[:, -1], random_state)
-    #     dataset = Dataset(X, y, random_state=random_state, test_size=params["test"], **kwargs)
-    #     repeated_folds = dataset.get_all_cv_folds(folds=FOLDS)
-    #     dataset.folds = repeated_folds
-    #     datasets[name] = dataset
-
-    FOLDS = 35
-
-    for name, params in data_paths_3.items():
-        data1 = np.loadtxt(params["path"])
-        data2 = np.loadtxt(params["path2"])
-        data = np.append(data1, data2, axis=0)
-        X = data[:,0:params["d"]]
-        y = data[:,-1]
-        y = y - 1  # classes should start at 0
-        dataset = Dataset(X, y, random_state=random_state, test_size=params["test"], **kwargs)
-        repeated_folds = dataset.get_all_cv_folds(folds=FOLDS)
-        dataset.folds = repeated_folds
-        datasets[name] = dataset
-
-    for name, params in data_paths_4.items():
-        data1 = np.loadtxt(params["path"])
-        data2 = np.loadtxt(params["path2"])
-        data = np.append(data1, data2, axis=0)
-        X = data[:,0:params["d"]]
-        y = data[:,-1]
-        y = y - 1  # classes should start at 0
-        #double point no. 14 to have two members in his class
-        pointX = X[14].reshape(1, params["d"])
-        pointy = y[14]
-        X = np.append(X, pointX, axis=0)
-        y = np.append(y, pointy)
-        dataset = Dataset(X, y, random_state=random_state, test_size=params["test"], **kwargs)
-        repeated_folds = dataset.get_all_cv_folds(folds=FOLDS)
-        dataset.folds = repeated_folds
-        datasets[name] = dataset
-
-    for name, params in data_paths_5.items():
-        data1 = np.loadtxt(params["path"])
-        data2 = np.loadtxt(params["path2"])
-        data = np.append(data1, data2, axis=0)
-        X = data[:,0:params["d"]]
-        y = data[:,-1]
-        y = y - 1  # classes should start at 0
-        #double every point to avoid empty classes in further calculation
-        #X = np.append(X, X, axis=0)
-        #y = np.append(y, y)
-        dataset = Dataset(X, y, random_state=random_state, test_size=params["test"], **kwargs)
-        repeated_folds = dataset.get_all_cv_folds(folds=FOLDS)
-        dataset.folds = repeated_folds
-        datasets[name] = dataset
-
     return datasets
 
 
 
 if __name__ == "__main__":
-    #datasets_1 = get_toy_datasets(123)
-    #datasets_2 = import_benchmark_data(123)
-    datasets_3 = import_ordinal_sets_with_folds()
-    #cvs = datasets["toy_red_sparse"].get_bootstraps()
-    #print(len(cvs))
-
+    toydatasets = get_toy_datasets(123)
+    realdatasets = get_datasets(123)
+    print(toydatasets, realdatasets)
