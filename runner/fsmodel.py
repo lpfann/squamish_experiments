@@ -10,6 +10,7 @@ from sklearn.utils import check_random_state
 import fri
 import linear_models
 
+import squamish
 
 class FSmodel(object):
     """
@@ -80,12 +81,8 @@ class LM(FSmodel):
 class FRI(FSmodel):
     def __init__(self, probtype="ordreg",random_state=None):
         super().__init__(random_state=random_state)
-        if probtype == "ordreg":
-            prob = fri.ProblemName.ORDINALREGRESSION
-        #elif probtype == "ordreg_imp":
-        #    prob = fri.ProblemName.ORDINALREGRESSION_IMP
 
-        self.model = fri.FRI(prob,
+        self.model = fri.FRI(fri.ProblemName.CLASSIFICATION,
             random_state=self.random_state,
             slack_regularization=0.1,
             slack_loss=0.1,
@@ -108,6 +105,28 @@ class FRI(FSmodel):
     def predict(self, X):
         return self.model.optim_model_.predict(X)
 
+class SQ(FSmodel):
+    def __init__(self,random_state=None):
+        super().__init__(random_state=random_state)
+
+        self.model = squamish.Main(
+            random_state=self.random_state
+        )
+
+    def fit(self, X, Y):
+        self.model.fit(X, Y)
+
+        return self
+
+    def support(self):
+        return self.model.support_
+        
+    def score(self, X, y):
+        return self.model.score(X, y)
+
+    def predict(self, X):
+        return self.model.predict(X)
+
 class AllFeatures(FSmodel):
     def __init__(self, random_state=None):
         super().__init__()
@@ -125,23 +144,29 @@ class AllFeatures(FSmodel):
 
 def get_models(seed):
     # FRI
-    fri_model_exc = FRI("ordreg",random_state=seed)
-    #fri_model_imp = FRI("ordreg_imp",random_state=seed)
+    fri_model_exc = FRI(random_state=seed)
     # L1 LM
     #l1lm = LM(random_state=seed, type="l1")
     # ElasticNet
     eelm = LM(random_state=seed)
+
+    sq = SQ(random_state=seed)
     # Ridge
     #ridge = LM(random_state=seed, type="l2")
     # Dummy selector
     #afm = AllFeatures()
 
     models = {
-        "FRI_exc": fri_model_exc,
+        #"FRI_exc": fri_model_exc,
         #"FRI_imp": fri_model_imp,
         #"Lasso": l1lm,
         "ElasticNet": eelm,
+        "SQ": sq,
         #"Ridge" : ridge,
         #"AllFeatures": afm,
     }
     return models
+
+if __name__ == "__main__":
+    m = get_models(123)
+    print(m)
