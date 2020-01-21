@@ -119,7 +119,7 @@ class SQ(FSmodel):
         return self
 
     def support(self):
-        return self.model.support_
+        return self.model.relevance_classes_
         
     def score(self, X, y):
         return self.model.score(X, y)
