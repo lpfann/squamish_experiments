@@ -1,0 +1,14 @@
+\begin{tabular}{lrrrr}
+\toprule
+{} &    n &  strong &  weak &  irr \\
+\textbf{Set  } &      &         &       &      \\
+\midrule
+\textbf{Set 1} &  150 &       6 &     0 &    6 \\
+\textbf{Set 2} &  150 &       0 &     6 &    6 \\
+\textbf{Set 3} &  150 &       3 &     4 &    3 \\
+\textbf{Set 4} &  256 &       6 &     6 &    6 \\
+\textbf{Set 5} &  512 &       1 &     2 &   11 \\
+\textbf{Set 6} &  200 &       1 &    20 &    0 \\
+\textbf{Set 7} &  200 &       1 &    20 &   20 \\
+\bottomrule
+\end{tabular}

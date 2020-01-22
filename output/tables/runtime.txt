@@ -1,0 +1,12 @@
+\begin{tabular}{lrrrrrrr}
+\toprule
+{} & runtime &       &       &       &       &       &       \\
+\textbf{data} &   Set 1 & Set 2 & Set 3 & Set 4 & Set 5 & Set 6 & Set 7 \\
+\textbf{model     } &         &       &       &       &       &       &       \\
+\midrule
+\textbf{ElasticNet} &       0 &     0 &     0 &     0 &     0 &     0 &     0 \\
+\textbf{FRI       } &       1 &     1 &     1 &     1 &     1 &     1 &     1 \\
+\textbf{RF        } &       0 &     0 &     0 &     1 &     2 &     1 &     4 \\
+\textbf{SQ        } &       2 &     1 &     2 &     3 &     3 &     2 &     3 \\
+\bottomrule
+\end{tabular}
