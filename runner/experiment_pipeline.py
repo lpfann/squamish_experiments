@@ -10,6 +10,8 @@ from job import Job
 import fsmodel
 import import_data
 import argparse
+import logging
+logging = logging.getLogger("Experiment")
 
 ## functions which are run in the worker threads for parallel computation
 def worker_stability(job: Job):
@@ -57,7 +59,7 @@ def run_performance_experiment(stabResults, parallel,datasets):
     Returns:
         list: List of jobs with results
     """
-    print("We started with: ", len(stabResults))
+    logging.debug(f"We started with:  {len(stabResults)}")
 
     jobs = []
     for job in stabResults:
@@ -71,7 +73,7 @@ def run_performance_experiment(stabResults, parallel,datasets):
         job.testData = test
         jobs.append(job)
 
-    print("We have jobs:", len(jobs))
+    logging.debug(f"We have jobs: {len(jobs)}")
     # Using pool map to run map in paralell
     # We also use tqdm to display progress bar
     results = parallel(map(joblib.delayed(worker_performance), jobs))
@@ -115,7 +117,7 @@ def main_exp(n_bootstraps=25, SEED=RandomState(1337), tempres=None, selectmodels
         filename str: Output filename for result file.
     
     """
-    print("Start benchmark at {}".format(time.ctime()))
+    logging.info("Start benchmark at {}".format(time.ctime()))
 
     # Get datasets and create bootstraps and folds in advance
     if toy:
@@ -133,7 +135,7 @@ def main_exp(n_bootstraps=25, SEED=RandomState(1337), tempres=None, selectmodels
     models = fsmodel.get_models(SEED)
     if selectmodels is not None:
         models = {k: v for k, v in models.items() if k in selectmodels}
-    print (models)
+    logging.info(f"models:{models}")
 
     # Cluster
     if not distributed:
@@ -149,10 +151,10 @@ def main_exp(n_bootstraps=25, SEED=RandomState(1337), tempres=None, selectmodels
 
     result = run_stability_experiment(models,datasets,parallel=parallel)
 
-    print(len(result))
+    logging.debug(len(result))
     file,saved_result = save_results([result], filename)
-    print("finished job.py with filename {}".format(file))
-    print("with end time {}".format(time.ctime()))
+    logging.info("finished job.py with filename {}".format(file))
+    logging.info("with end time {}".format(time.ctime()))
 
     return saved_result,
 

@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import sys, os
-
+import logging
+logging = logging.getLogger("Job")
 
 @contextmanager
 def suppress_stdout():
@@ -120,20 +121,19 @@ class Job(object):
                 We also record runtime and training error.
             """
         data, model = self.traindata, self.model
-        print("Running {} on set {}".format(self.modelname, self.setname))
+        logging.info("Running {} on set {}".format(self.modelname, self.setname))
 
         X, y = data
         # Timing the model
         start_time = time.time()
         model.fit(X, y)  # Run the model
-        try:
-            print()
-            #with suppress_stdout():
-        except Exception as e:
-            print("Error at set {} with model {}".format(self.setname, self.modelname))
-            print("X shape is {}, y classes are {}".format(X.shape, np.unique(y)))
-            print(e)
-            return None
+        #try:
+        #    print()
+        #    #with suppress_stdout():
+        #except Exception as e:
+        #    logging.exception("Error at set {} with model {}".format(self.setname, self.modelname))
+        #    logging.exception("X shape is {}, y classes are {}".format(X.shape, np.unique(y)))
+        #    return None
 
         delta_time = time.time() - start_time
         # Retrieve the selected features

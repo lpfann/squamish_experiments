@@ -12,6 +12,8 @@ from pathlib import Path
 from fri import genClassificationData
 import numpy as np
 import os
+import logging
+logging = logging.getLogger(__name__)
 
 class Dataset(object):
     def __init__(
@@ -345,25 +347,25 @@ def import_SPECTF(random_state, **kwargs):
 
 
 def get_datasets(seed):
-    print("FIBROSIS")
+    logging.info("FIBROSIS")
     set_fibrosis = import_Fibrosis(seed)
-    print("FLIP")
+    logging.info("FLIP")
     set_flip = import_FLIP(seed)
-    print("T21")
+    logging.info("T21")
     set_t21 = import_T21(seed)
-    print("SPECTF")
+    logging.info("SPECTF")
     set_spectf = import_SPECTF(seed)
-    print("WBC")
+    logging.info("WBC")
     set_WBC = import_wbc(seed)
-    print("colposcopy")
+    logging.info("colposcopy")
     set_col = import_colposcopy(seed)
-    print("cervical")
+    logging.info("cervical")
     set_cervical = import_cervical(seed)
 
     datasets = {
-        "fibrosis": set_fibrosis,
+        #"fibrosis": set_fibrosis,
         #"colposcopy": set_col,
-        #"cervical": set_cervical,
+        "cervical": set_cervical,
         #"flip": set_flip,
         #"t21": set_t21,
         #"spectf": set_spectf,
@@ -374,17 +376,17 @@ def get_datasets(seed):
 
 
 toy_set_params = {
-            "Set1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
-            "Set2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
-            "Set3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
-            "Set4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
-            "Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
-            "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
-            "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
+            #"Set1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
+            #"Set2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
+            #"Set3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
+            #"Set4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
+            #"Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
+            #"Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
+            #"Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
+            #"Set8": {"n": 10000, "strong": 10, "weak": 20, "irr": 10},
+            "Set9": {"n": 10000, "strong": 10, "weak": 20, "irr": 200},
         }
 #toy_set_params = {
-#            "Set8": {"n": 10000, "strong": 10, "weak": 20, "irr": 10},
-#            "Set9": {"n": 10000, "strong": 10, "weak": 20, "irr": 200},
 #        }
 
 def get_toy_datasets(seed, toy_set_params=toy_set_params, noise=0.0):
