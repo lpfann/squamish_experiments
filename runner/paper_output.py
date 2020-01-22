@@ -4,19 +4,10 @@ import pandas as pd
 import argparse
 import sys
 
-from fri import genClassificationData
-from fri import FRIClassification
-from fri.plot import plot_dendrogram_and_intervals
-from fri.plot import plot_relevance_bars
-
 from numpy.random import RandomState
-from sklearn.metrics import precision_score, roc_auc_score, recall_score, f1_score
-from sklearn.preprocessing import StandardScaler
-from scipy.stats import friedmanchisquare
+from sklearn.metrics import precision_score, recall_score, f1_score
 
-# rom exp_runner.feature_set_stability_measure import stability
-from experiment_pipeline import main_exp
-from . import import_data
+import experiment_pipeline
 
 import matplotlib
 import matplotlib.patches as mpatches
@@ -29,7 +20,7 @@ matplotlib.rcParams["pgf.rcfonts"] = False
 # Load style file
 plt.style.use("PaperDoubleFig.mplstyle")
 
-toy_set_params = import_data.toy_set_params
+toy_set_params = experiment_pipeline.toy_set_params
 
 parser = argparse.ArgumentParser(description="Start experiment manually from CLI")
 parser.add_argument("--iters", type=int, default=25)
@@ -41,14 +32,14 @@ args = parser.parse_args()
 def load_file(name):
     with open("./results/{}".format(name), "rb") as f:
         stability_res = pickle.load(f)
-        accuracy_res = pickle.load(f)
+        #accuracy_res = pickle.load(f)
     return stability_res, accuracy_res
 
 
 if len(sys.argv) < 1:
     seed = RandomState(1337)
     n_bs = 3
-    main_exp(
+    experiment_pipeline.main_exp(
         n_bootstraps=n_bs,
         SEED=seed,
         filename="paper_experiment",
@@ -59,12 +50,12 @@ else:
     if args.resfile is not None:
         with open("./results/{}".format(args.resfile), "rb") as f:
             stability_res = pickle.load(f)
-            accuracy_res = pickle.load(f)
+            #accuracy_res = pickle.load(f)
         n_bs = args.iters
     else:
         seed = RandomState(args.seed)
         n_bs = args.iters
-        main_exp(
+        experiment_pipeline.main_exp(
             n_bootstraps=n_bs,
             SEED=seed,
             filename="paper_experiment",
@@ -78,6 +69,8 @@ models = set(list(zip(*stability_res.keys()))[1])
 mod_list = list(models)
 model_sorter = {
     "FRI": 0,
+    "SQ":1,
+    "RF":2,
     "ElasticNet": 3,
     "AllFeatures": 4,
     "Lasso": 5,
@@ -93,6 +86,8 @@ short_model_names = {
     "Boruta": "Boruta",
     "EFS": "EFS",
     "Ridge": "Ridge",
+    "RF": "RF",
+    "SQ": "SQ",
 }
 
 sim_set_names = {
@@ -102,7 +97,9 @@ sim_set_names = {
     "Set4": "Set 4",
     "Set5": "Set 5",
     "Set6": "Set 6",
-    "Set7": "Set 7"
+    "Set7": "Set 7",
+    "Set8": "Set 8",
+    "Set9": "Set 9"
     }
 
 # Set consistent color pallete
@@ -123,6 +120,8 @@ datasorter = {
     "Set 5": 5,
     "Set 6": 6,
     "Set 7": 7,
+    "Set 8": 7,
+    "Set 9": 7,
     "Automobile": 8,
     "Contact-lenses": 9,
     "Eucalyptus": 10,
@@ -151,17 +150,17 @@ list_df = pd.DataFrame(
 )
 stability_res = list_df.dropna().T  # Drop invalid results
 
-index = pd.MultiIndex.from_tuples(accuracy_res.keys())
-list_df = pd.DataFrame(
-    [pd.Series(value) for value in accuracy_res.values()], index=index
-)
-accuracy_res = list_df.dropna().T  # Drop invalid results
+#index = pd.MultiIndex.from_tuples(accuracy_res.keys())
+#list_df = pd.DataFrame(
+#    [pd.Series(value) for value in accuracy_res.values()], index=index
+#)
+#accuracy_res = list_df.dropna().T  # Drop invalid results
 
 
 def print_df_astable(df, filename=None):
     output = df.to_latex(multicolumn=False, bold_rows=True)
     if filename is not None:
-        with open("./tables/{}.txt".format(filename), "w") as f:
+        with open("../output/tables/{}.txt".format(filename), "w") as f:
             f.write(output)
     return output
 
@@ -181,7 +180,7 @@ def stability_plot(stability_res, pal, order):
     # Using Nogueiras stability measure
     stabf = (
         pd.DataFrame(stability_res)
-        .applymap(lambda x: x.featset.astype(int))
+        .applymap(lambda x: x["features"].astype(int))
         .apply(lambda array: st.getStability(list(array)))
     )
     # stabf = pd.DataFrame(stability_res).applymap(lambda x: x.featset).apply(stability)
@@ -232,11 +231,11 @@ def get_truth(params):
 def selection_rate_plot(models, datasets, toy=True):
     def selection_rate(stability_res, model, dataset):
         res = stability_res[(dataset, model)]
-        d = len(res[0].featset)
+        d = len(res[0]["features"])
         n_bs = len(res)
         tmp = []
         for r in res:
-            tmp.append(r.featset)
+            tmp.append(r["features"])
         table = pd.DataFrame(tmp, index=np.arange(len(tmp)), columns=range(d))
         return table
 
@@ -320,7 +319,7 @@ def selection_rate_plot(models, datasets, toy=True):
             columnspacing=1,
         )
     f.savefig(
-        "./figures/{}_fsfrequency.pdf".format("toy" if toy else "real"),
+        "../output/autofigs/{}_fsfrequency.pdf".format("toy" if toy else "real"),
         bbox_inches="tight",
     )
 
@@ -328,7 +327,7 @@ def selection_rate_plot(models, datasets, toy=True):
 def get_sim_accuracy(stability_res):
     toy_accuracy = (
         pd.DataFrame(stability_res)
-        .applymap(lambda r: r.score)
+        .applymap(lambda r: r["train_scores"])
         .T.stack()
         .rename("accuracy")
     )
@@ -349,12 +348,14 @@ def get_sim_scores(stability_res):
     toyframe = stability_res.iloc[
         :, stability_res.columns.get_level_values(0).str.contains("Set")
     ]
-
+    print(toyframe)
     def get_score_of_series(series, scorefnc):
         setname = series.name[0]
 
         def get_score(result):
-            featset = result.featset
+            featset = result["features"]
+            if 2 in featset:
+                featset = np.array(featset>0).astype(int)
             truth_set = get_truth(toy_set_params[setname])
             return scorefnc(truth_set, featset)
 
@@ -403,76 +404,8 @@ def get_sim_scores(stability_res):
 
     return renamed_toy_scores
 
-# TODO: accunacy durch vernünftige ordinal regression score function ersetzen
-# def get_auc_table(accuracy_res):
-#     auc_frame_train = (
-#         pd.DataFrame(accuracy_res)
-#         .applymap(lambda r: roc_auc_score(r.trainy, r.traindec))
-#         .T.stack()
-#         .rename("trainAUC")
-#     )
-#     auc_frame_test = (
-#         pd.DataFrame(accuracy_res)
-#         .applymap(lambda r: roc_auc_score(r.testy, r.testdec))
-#         .T.stack()
-#         .rename("testAUC")
-#     )
-#     auc_frame = pd.concat([auc_frame_test, auc_frame_train], axis=1)
-#     auc_frame = (
-#         auc_frame.astype(float)
-#         .stack()
-#         .reset_index()
-#         .drop("level_2", 1)
-#         .rename(
-#             columns={
-#                 "level_0": "data",
-#                 0: "score",
-#                 "level_1": "model",
-#                 "level_3": "type",
-#             }
-#         )
-#     )
-
-#     auc_grouped = auc_frame[auc_frame.type == "testAUC"].groupby(["data", "model"])
-#     auc_mean = auc_frame[auc_frame.type == "testAUC"].groupby(["data", "model"]).mean()
-#     auc_mean_real = (
-#         auc_mean[auc_mean.index.get_level_values(0).str.contains("Set") == False]
-#         .unstack()
-#         .round(decimals=3)
-#     )
-
-#     return auc_frame_test, auc_mean_real
-
-
-# def xi_squred_test(auc_frame_test):
-#     # q_5p = 2.949
-#     # k = 7
-#     N = n_bs
-#     # CD = q_5p*(k*(k+1)/(6*N))**0.5
-
-#     for dataset in datasets:
-#         if "Set" in dataset:
-#             # pass
-#             continue
-#         method_columns = auc_frame_test[dataset].unstack().T.as_matrix().T
-#         chi2 = friedmanchisquare(*method_columns)
-#         print("{:15} Chi2: {:5f}, p:{:3f}".format(dataset, *chi2))
-#         if chi2[1] > 0.05:
-#             print("not significant for ", dataset)
-#         else:
-#             av_rank = (
-#                 auc_frame_test[dataset].unstack().T.rank(axis=1, ascending=False).mean()
-#             )
-#             cdo = Orange.evaluation.compute_CD(av_rank, N)
-#             fig = Orange.evaluation.graph_ranks(
-#                 av_rank, av_rank.index, cd=cdo, width=3, reverse=True, textspace=0.5
-#             )
-#             filename = "./figures/nemenyi_{}.pdf".format(dataset)
-#             plt.savefig(filename, bbox_inches="tight")
-
-
 def get_runtime_table(res_dict):
-    runtime_frame = pd.DataFrame(res_dict).applymap(lambda r: r.runtime)
+    runtime_frame = pd.DataFrame(res_dict).applymap(lambda r: r["runtime"])
     runtime_frame = (
         runtime_frame.T.stack()
         .reset_index()
@@ -500,7 +433,7 @@ sim_accuracy = get_sim_accuracy(stability_res)
 print("#################### Training accuracy")
 print(print_df_astable(sim_accuracy, "sim_accuracy"))
 
-stability_plot(stability_res, pal, dataset_list)
+#stability_plot(stability_res, pal, dataset_list)
 
 selection_rate_plot(models, datasets)
 selection_rate_plot(models, datasets, toy=False)

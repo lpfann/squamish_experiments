@@ -14,6 +14,7 @@ import fri
 import linear_models
 
 import squamish
+import logging
 
 class FSmodel(object):
     """
@@ -145,7 +146,7 @@ class RF(FSmodel):
 
     def fit(self, X, Y):
         self.model.fit(X, Y)
-
+        logging.info(self.score(X,Y))
         return self
 
     def support(self):
@@ -171,27 +172,3 @@ class AllFeatures(FSmodel):
     def score(self, X, y):
         return 0
 
-
-def get_models(seed):
-    # FRI
-    fri_model_exc = FRI(random_state=seed)
-
-    # ElasticNet
-    eelm = LM(random_state=seed)
-
-    sq = SQ(random_state=seed)
-
-    rf = RF(random_state=seed)
-
-    models = {
-        #"FRI_exc": fri_model_exc,
-        #"ElasticNet": eelm,
-        #"RF": rf,
-        "SQ": sq,
-        #"AllFeatures": afm,
-    }
-    return models
-
-if __name__ == "__main__":
-    m = get_models(123)
-    print(m)
