@@ -84,7 +84,7 @@ class FRI(FSmodel):
             slack_regularization=0.1,
             slack_loss=0.1,
             n_probe_features=50,
-            n_jobs=7,
+            n_jobs=-1,
             n_param_search=50
         )
 
@@ -141,7 +141,7 @@ class RF(FSmodel):
 
         model = lightgbm.LGBMClassifier(random_state=self.random_state.randint(10000),
                                         **PARAMS)
-        self.model = fs.RFECV(model, cv=cv)
+        self.model = fs.RFECV(model, cv=cv,)
 
     def fit(self, X, Y):
         self.model.fit(X, Y)
