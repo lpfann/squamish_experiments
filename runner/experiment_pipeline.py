@@ -10,8 +10,10 @@ from job import Job
 import fsmodel
 import import_data
 import argparse
+
 import logging
-logging = logging.getLogger("Experiment")
+logger = logging.getLogger("Experiment")
+logger.setLevel(logging.DEBUG)
 
 ## functions which are run in the worker threads for parallel computation
 def worker_stability(job: Job):
@@ -59,7 +61,7 @@ def run_performance_experiment(stabResults, parallel,datasets):
     Returns:
         list: List of jobs with results
     """
-    logging.debug(f"We started with:  {len(stabResults)}")
+    logger.debug(f"We started with:  {len(stabResults)}")
 
     jobs = []
     for job in stabResults:
@@ -73,7 +75,7 @@ def run_performance_experiment(stabResults, parallel,datasets):
         job.testData = test
         jobs.append(job)
 
-    logging.debug(f"We have jobs: {len(jobs)}")
+    logger.debug(f"We have jobs: {len(jobs)}")
     # Using pool map to run map in paralell
     # We also use tqdm to display progress bar
     results = parallel(map(joblib.delayed(worker_performance), jobs))
@@ -117,7 +119,7 @@ def main_exp(n_bootstraps=25, SEED=RandomState(1337), tempres=None, selectmodels
         filename str: Output filename for result file.
     
     """
-    logging.info("Start benchmark at {}".format(time.ctime()))
+    logger.info("Start benchmark at {}".format(time.ctime()))
 
     # Get datasets and create bootstraps and folds in advance
     if toy:
@@ -135,7 +137,7 @@ def main_exp(n_bootstraps=25, SEED=RandomState(1337), tempres=None, selectmodels
     models = fsmodel.get_models(SEED)
     if selectmodels is not None:
         models = {k: v for k, v in models.items() if k in selectmodels}
-    logging.info(f"models:{models}")
+    logger.info(f"models:{models}")
 
     # Cluster
     if not distributed:
@@ -151,10 +153,10 @@ def main_exp(n_bootstraps=25, SEED=RandomState(1337), tempres=None, selectmodels
 
     result = run_stability_experiment(models,datasets,parallel=parallel)
 
-    logging.debug(len(result))
+    logger.debug(len(result))
     file,saved_result = save_results([result], filename)
-    logging.info("finished job.py with filename {}".format(file))
-    logging.info("with end time {}".format(time.ctime()))
+    logger.info("finished job.py with filename {}".format(file))
+    logger.info("with end time {}".format(time.ctime()))
 
     return saved_result,
 
@@ -165,7 +167,7 @@ if __name__ == "__main__":
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--noise", type=float, default=0)
     parser.add_argument("--models", nargs="*", default=None)
-    parser.add_argument("--filename", type=str)
+    parser.add_argument("--filename", type=str, default=None)
     parser.add_argument("--toy", type=bool,default=False)
     parser.add_argument("--distributed", type=bool,default=False)
     args = parser.parse_args()

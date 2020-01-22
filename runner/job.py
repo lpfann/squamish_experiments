@@ -67,54 +67,54 @@ class Job(object):
         self.testdata = testdata
         self.model = model
 
-    def run_esann_test(self):
-        model = self.model
-        print("Running {} on set {}".format(self.modelname, self.setname))
+    # def run_esann_test(self):
+    #     model = self.model
+    #     print("Running {} on set {}".format(self.modelname, self.setname))
 
-        score = ordinal_scores
-        # Get data
-        traindata, testdata = self.traindata, self.testdata
+    #     score = ordinal_scores
+    #     # Get data
+    #     traindata, testdata = self.traindata, self.testdata
 
-        X, y = traindata
-        # Timing the model
-        start_time = time.time()
-        try:
-            with suppress_stdout():
-                model.ft(X, y)  # Run the model
+    #     X, y = traindata
+    #     # Timing the model
+    #     start_time = time.time()
+    #     try:
+    #         with suppress_stdout():
+    #             model.fit(X, y)  # Run the model
 
-        except Exception as e:
-            print("Error at set {} with model {}".format(self.setname, self.modelname))
-            print("X shape is {}, y classes are {}".format(X.shape, np.unique(y)))
-            print(e)
-            return None
+    #     except Exception as e:
+    #         print("Error at set {} with model {}".format(self.setname, self.modelname))
+    #         print("X shape is {}, y classes are {}".format(X.shape, np.unique(y)))
+    #         print(e)
+    #         return None
 
-        delta_time = time.time() - start_time
+    #     delta_time = time.time() - start_time
 
-        # Retrieve the selected features
-        selected_features = model.support()
+    #     # Retrieve the selected features
+    #     selected_features = model.support()
 
-        train_scores = {}
-        testpredict = model.predict(X)
-        for score_type in ["mze", "mae", "mmae"]:
-            testscore = score(testpredict, y, score_type, return_error=True)
-            train_scores[score_type] = testscore
+    #     train_scores = {}
+    #     testpredict = model.predict(X)
+    #     for score_type in ["mze", "mae", "mmae"]:
+    #         testscore = score(testpredict, y, score_type, return_error=True)
+    #         train_scores[score_type] = testscore
 
-        X, y = testdata
-        test_scores = {}
-        testpredict = model.predict(X)
-        for score_type in ["mze", "mae", "mmae"]:
-            testscore = score(testpredict, y, score_type, return_error=True)
-            test_scores[score_type] = testscore
+    #     X, y = testdata
+    #     test_scores = {}
+    #     testpredict = model.predict(X)
+    #     for score_type in ["mze", "mae", "mmae"]:
+    #         testscore = score(testpredict, y, score_type, return_error=True)
+    #         test_scores[score_type] = testscore
 
-        results = {}
-        results["train_scores"] = train_scores
-        results["test_scores"] = test_scores
-        results["features"] = selected_features
-        results["runtime"] = delta_time
-        results["setname"] = self.setname
-        results["modelname"] = self.modelname
+    #     results = {}
+    #     results["train_scores"] = train_scores
+    #     results["test_scores"] = test_scores
+    #     results["features"] = selected_features
+    #     results["runtime"] = delta_time
+    #     results["setname"] = self.setname
+    #     results["modelname"] = self.modelname
 
-        return results
+    #     return results
 
     def run_one_bootstrap(self):
         """Method which runs the model on the set and saves the resulting feature set for later analysis.
