@@ -6,6 +6,9 @@ import numpy as np
 from sklearn.feature_selection import RFECV, SelectFromModel
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import check_random_state
+from sklearn.linear_model import Lasso, Ridge, ElasticNet,LogisticRegression,SGDClassifier
+import sklearn.feature_selection as fs
+import lightgbm
 
 import fri
 import linear_models
@@ -44,17 +47,11 @@ class FSmodel(object):
 class LM(FSmodel):
     def __init__(self, random_state=None):
         super().__init__(random_state=random_state)
-        # if type == "l1":
-        #     l1_ratio = 1
-        # if type == "l2":
-        #     l1_ratio = 0
-        # if type == "elasticnet":
-        #     l1_ratio = 0.5
 
 
     def fit(self, X, Y):
-        model = linear_models.RegularizedLinearOrdinalRegression()
-        tuned_parameters = {"C":  [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
+        model = SGDClassifier(max_iter=100,tol=1e-3, random_state=self.random_state)
+        tuned_parameters = {"alpha":  [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
                             "l1_ratio":[0, 0.01, 0.1, 0.2, 0.5, 0.7,1]}
         cv = 3
         gridsearch = GridSearchCV(
@@ -127,6 +124,39 @@ class SQ(FSmodel):
     def predict(self, X):
         return self.model.predict(X)
 
+class RF(FSmodel):
+    def __init__(self,random_state=None, cv=5):
+        super().__init__(random_state=random_state)
+        PARAMS = {
+        #"max_depth": 5,
+        "boosting_type": "rf",
+        "bagging_fraction": 0.632,
+        "bagging_freq": 1,
+        "subsample":None,
+        "subsample_freq":None,
+        #"feature_fraction": 0.8,
+        #"importance_type": "gain",
+        "verbose": -1,
+        }
+
+        model = lightgbm.LGBMClassifier(random_state=self.random_state.randint(10000),
+                                        **PARAMS)
+        self.model = fs.RFECV(model, cv=cv)
+
+    def fit(self, X, Y):
+        self.model.fit(X, Y)
+
+        return self
+
+    def support(self):
+        return self.model.support_
+        
+    def score(self, X, y):
+        return self.model.score(X, y)
+
+    def predict(self, X):
+        return self.model.predict(X)
+
 class AllFeatures(FSmodel):
     def __init__(self, random_state=None):
         super().__init__()
@@ -145,24 +175,19 @@ class AllFeatures(FSmodel):
 def get_models(seed):
     # FRI
     fri_model_exc = FRI(random_state=seed)
-    # L1 LM
-    #l1lm = LM(random_state=seed, type="l1")
+
     # ElasticNet
     eelm = LM(random_state=seed)
 
     sq = SQ(random_state=seed)
-    # Ridge
-    #ridge = LM(random_state=seed, type="l2")
-    # Dummy selector
-    #afm = AllFeatures()
+
+    rf = RF(random_state=seed)
 
     models = {
         #"FRI_exc": fri_model_exc,
-        #"FRI_imp": fri_model_imp,
-        #"Lasso": l1lm,
-        "ElasticNet": eelm,
+        #"ElasticNet": eelm,
+        #"RF": rf,
         "SQ": sq,
-        #"Ridge" : ridge,
         #"AllFeatures": afm,
     }
     return models

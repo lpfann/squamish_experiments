@@ -144,7 +144,7 @@ class Toyset(Dataset):
         # Generate new data according to prototype set used to create object
         bs = []
         for i in range(n_bootstraps):
-            X, y = genOrdinalRegressionData(
+            X, y = genClassificationData(
                 n_features=self.n_features,
                 n_strel=self.n_strel,
                 n_redundant=self.n_redundant,
@@ -159,39 +159,6 @@ class Toyset(Dataset):
         self.bootstraps = bs
         return self.bootstraps
 
-
-
-toy_set_params = {
-            "Set1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
-            "Set2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
-            "Set3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
-            "Set4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
-            "Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
-            "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
-            "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
-        }
-#toy_set_params = {
-#            "Set8": {"n": 10000, "strong": 10, "weak": 20, "irr": 10},
-#            "Set9": {"n": 10000, "strong": 10, "weak": 20, "irr": 200},
-#        }
-
-def get_toy_datasets(seed, toy_set_params=toy_set_params, noise=0.0):
-    datasets = {}
-    for name, params in toy_set_params.items():
-        n_strel = params["strong"]
-        n_redundant = params["weak"]
-        n_irrel = params["irr"]
-        n_features = n_strel + n_redundant + n_irrel
-        n_samples = params["n"]
-        datasets[name] = Toyset(
-            n_features=n_features,
-            n_strel=n_strel,
-            n_redundant=n_redundant,
-            n_samples=n_samples,
-            random_state=seed,
-            noise=noise
-        )
-    return datasets
 
 
 def import_Fibrosis(random_state, **kwargs):
@@ -235,11 +202,6 @@ def import_cervical(random_state, **kwargs):
 
     dataset = Dataset(X, y, random_state=random_state, **kwargs)
     return dataset
-
-
-
-
-
 
 def import_FLIP(random_state, **kwargs):
     NA_THRESH = 0.6
@@ -400,15 +362,48 @@ def get_datasets(seed):
 
     datasets = {
         "fibrosis": set_fibrosis,
-        "colposcopy": set_col,
-        "cervical": set_cervical,
-        "flip": set_flip,
-        "t21": set_t21,
-        "spectf": set_spectf,
-        "wbc": set_WBC,
+        #"colposcopy": set_col,
+        #"cervical": set_cervical,
+        #"flip": set_flip,
+        #"t21": set_t21,
+        #"spectf": set_spectf,
+        #"wbc": set_WBC,
     }
     return datasets
 
+
+
+toy_set_params = {
+            "Set1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
+            "Set2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
+            "Set3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
+            "Set4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
+            "Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
+            "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
+            "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
+        }
+#toy_set_params = {
+#            "Set8": {"n": 10000, "strong": 10, "weak": 20, "irr": 10},
+#            "Set9": {"n": 10000, "strong": 10, "weak": 20, "irr": 200},
+#        }
+
+def get_toy_datasets(seed, toy_set_params=toy_set_params, noise=0.0):
+    datasets = {}
+    for name, params in toy_set_params.items():
+        n_strel = params["strong"]
+        n_redundant = params["weak"]
+        n_irrel = params["irr"]
+        n_features = n_strel + n_redundant + n_irrel
+        n_samples = params["n"]
+        datasets[name] = Toyset(
+            n_features=n_features,
+            n_strel=n_strel,
+            n_redundant=n_redundant,
+            n_samples=n_samples,
+            random_state=seed,
+            noise=noise
+        )
+    return datasets
 
 
 if __name__ == "__main__":
