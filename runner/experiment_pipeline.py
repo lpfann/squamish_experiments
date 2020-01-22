@@ -13,7 +13,6 @@ import argparse
 
 import logging
 logger = logging.getLogger("Experiment")
-logger.setLevel(logging.DEBUG)
 
 ## functions which are run in the worker threads for parallel computation
 def worker_stability(job: Job):
@@ -170,7 +169,11 @@ if __name__ == "__main__":
     parser.add_argument("--filename", type=str, default=None)
     parser.add_argument("--toy", type=bool,default=False)
     parser.add_argument("--distributed", type=bool,default=False)
+    parser.add_argument("--debug", type=bool,default=False)
+
     args = parser.parse_args()
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     main_exp(n_bootstraps=args.iters,tempres=args.tempresfile,
         selectmodels=args.models,filename=args.filename,
