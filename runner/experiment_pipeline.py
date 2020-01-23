@@ -254,7 +254,7 @@ def main_exp(
     logger.info("finished job.py with filename {}".format(file))
     logger.info("with end time {}".format(time.ctime()))
 
-    return (saved_result,)
+    return saved_result
 
 
 if __name__ == "__main__":
