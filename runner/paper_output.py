@@ -154,7 +154,7 @@ if __name__ == '__main__':
     matplotlib.backend_bases.register_backend("pdf", FigureCanvasPgf)
     matplotlib.rcParams["pgf.rcfonts"] = False
     # Load style file
-    plt.style.use("PaperDoubleFig.mplstyle")
+    plt.style.use("../PaperDoubleFig.mplstyle")
 
     toy_set_params = experiment_pipeline.toy_set_params
 
