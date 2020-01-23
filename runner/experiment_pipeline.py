@@ -168,8 +168,8 @@ toy_set_params = {
     "Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
     "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
     "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
-    # "Set8": {"n": 10000, "strong": 10, "weak": 20, "irr": 10},
-    # "Set9": {"n": 10000, "strong": 10, "weak": 20, "irr": 200},
+    "Set8": {"n": 2000, "strong": 10, "weak": 10, "irr": 50},
+    #"Set9": {"n": 5000, "strong": 10, "weak": 20, "irr": 200},
 }
 
 

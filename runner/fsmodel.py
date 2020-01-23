@@ -16,6 +16,9 @@ import linear_models
 import squamish
 import logging
 
+
+N_JOBS = 1
+
 class FSmodel(object):
     """
     Abstract class for all models which are used for feature selection
@@ -56,14 +59,14 @@ class LM(FSmodel):
                             "l1_ratio":[0, 0.01, 0.1, 0.2, 0.5, 0.7,1]}
         cv = 3
         gridsearch = GridSearchCV(
-            model, tuned_parameters, cv=cv, verbose=0, error_score=np.nan,n_jobs=1
+            model, tuned_parameters, cv=cv, verbose=0, error_score=np.nan,n_jobs=N_JOBS
         )
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             gridsearch.fit(X, Y)
         self.model = gridsearch.best_estimator_
-        self.selector = RFECV(estimator=self.model, cv=5, min_features_to_select=2)
+        self.selector = RFECV(estimator=self.model, cv=5, min_features_to_select=2, n_jobs=N_JOBS)
         self.selector.fit(X, Y)
         self.support_ = self.selector.get_support()
         return self
@@ -85,7 +88,7 @@ class FRI(FSmodel):
             slack_regularization=0.1,
             slack_loss=0.1,
             n_probe_features=50,
-            n_jobs=-1,
+            n_jobs=N_JOBS,
             n_param_search=50
         )
 
@@ -108,7 +111,8 @@ class SQ(FSmodel):
         super().__init__(random_state=random_state)
 
         self.model = squamish.Main(
-            random_state=self.random_state
+            random_state=self.random_state,
+            n_jobs=N_JOBS
         )
 
     def fit(self, X, Y):
@@ -130,17 +134,17 @@ class RF(FSmodel):
         super().__init__(random_state=random_state)
         PARAMS = {
         #"max_depth": 5,
-        "boosting_type": "rf",
-        "bagging_fraction": 0.632,
-        "bagging_freq": 1,
-        "subsample":None,
-        "subsample_freq":None,
+        #"boosting_type": "rf",
+        #"bagging_fraction": 0.632,
+        #"bagging_freq": 1,
+        #"subsample":None,
+        #"subsample_freq":None,
         #"feature_fraction": 0.8,
         #"importance_type": "gain",
         "verbose": -1,
         }
-
         model = lightgbm.LGBMClassifier(random_state=self.random_state.randint(10000),
+                                        n_jobs=N_JOBS,
                                         **PARAMS)
         self.model = fs.RFECV(model, cv=cv,)
 

@@ -160,7 +160,7 @@ stability_res = list_df.dropna().T  # Drop invalid results
 def print_df_astable(df, filename=None):
     output = df.to_latex(multicolumn=False, bold_rows=True)
     if filename is not None:
-        with open("../output/tables/{}.txt".format(filename), "w") as f:
+        with open("../output/tables/{}.tex".format(filename), "w") as f:
             f.write(output)
     return output
 
@@ -388,7 +388,8 @@ def get_sim_scores(stability_res):
     )
     toy_f1["type"] = "f1"
 
-    toy_scores = pd.concat([toy_precision, toy_recall, toy_f1])
+    #toy_scores = pd.concat([toy_precision, toy_recall, toy_f1])
+    toy_scores = toy_f1
 
     # toy_f1.groupby(["model", "data"]).mean().unstack()
 
@@ -400,7 +401,7 @@ def get_sim_scores(stability_res):
     renamed_toy_scores = (
         grouped_toy_scores.round(decimals=2).unstack(1).rename(columns=sim_set_names)
     )
-    renamed_toy_scores = renamed_toy_scores.sort_index(axis=1)
+    renamed_toy_scores = renamed_toy_scores.sort_index(axis=1).T
 
     return renamed_toy_scores
 
@@ -415,7 +416,7 @@ def get_runtime_table(res_dict):
     runtime_frame = (
         runtime_frame.groupby(["model", "data"]).mean().unstack().astype(int)
     )
-    runtime_frame = runtime_frame.rename(columns=sim_set_names).sort_index(axis=1)
+    runtime_frame = runtime_frame.rename(columns=sim_set_names).sort_index(axis=1).T
     return runtime_frame
 
 
@@ -435,8 +436,8 @@ print(print_df_astable(sim_accuracy, "sim_accuracy"))
 
 #stability_plot(stability_res, pal, dataset_list)
 
-selection_rate_plot(models, datasets)
-selection_rate_plot(models, datasets, toy=False)
+#selection_rate_plot(models, datasets)
+#selection_rate_plot(models, datasets, toy=False)
 
 # TODO: score ersetzen
 #auc_frame_test, auc_mean_real = get_auc_table(accuracy_res)
