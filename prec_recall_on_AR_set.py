@@ -101,7 +101,7 @@ def rowfunc(row, reltype, scorefunc):
 
     truth = get_truth_onetype(toy_set_params[data], reltype)
     pred = features == reltype
-    score  = scorefunc(truth, pred,zero_division=0)
+    score  = scorefunc(truth, pred,zero_division=1)
     
     if score == 0:
         score = np.nan
@@ -184,7 +184,6 @@ combined
 # In[116]:
 
 
-combined.replace(np.nan,"-")
 
 
 # In[114]:
@@ -198,7 +197,6 @@ def print_df_astable(df, filename=None):
     return output
 # In[115]:
 
-
 print_df_astable(combined, "prec_rec_ARFS")
 
 
@@ -209,7 +207,6 @@ combined_mean = combined.groupby(level=0).mean()
 
 
 # In[118]:
-
 
 print_df_astable(combined_mean,"prec_rec_ARFS_mean")
 
