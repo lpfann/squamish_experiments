@@ -12,7 +12,6 @@ import sklearn.feature_selection as fs
 import lightgbm
 
 import fri
-import linear_models
 
 import squamish
 import logging
