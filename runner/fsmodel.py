@@ -8,6 +8,8 @@ from sklearn.feature_selection import RFECV, SelectFromModel
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import check_random_state
 from sklearn.linear_model import Lasso, Ridge, ElasticNet,LogisticRegression,SGDClassifier
+from sklearn.model_selection import cross_val_score
+
 import sklearn.feature_selection as fs
 import lightgbm
 
@@ -116,7 +118,9 @@ class SQ(FSmodel):
         )
 
     def fit(self, X, Y):
+
         self.model.fit(X, Y)
+        logging.info(self.score(X,Y))
 
         return self
 
@@ -133,14 +137,12 @@ class RF(FSmodel):
     def __init__(self,random_state=None, cv=5):
         super().__init__(random_state=random_state)
         PARAMS = {
-        #"max_depth": 5,
-        #"boosting_type": "rf",
-        #"bagging_fraction": 0.632,
-        #"bagging_freq": 1,
-        #"subsample":None,
-        #"subsample_freq":None,
+        "num_leaves":32,
+        "max_depth": 5,
+        "boosting_type": "rf",
+        "bagging_fraction": 0.632,
+        "bagging_freq": 1,
         #"feature_fraction": 0.8,
-        #"importance_type": "gain",
         "verbose": -1,
         }
         model = lightgbm.LGBMClassifier(random_state=self.random_state.randint(10000),
