@@ -145,10 +145,10 @@ class RF(FSmodel):
         #"feature_fraction": 0.8,
         "verbose": -1,
         }
-        model = lightgbm.LGBMClassifier(random_state=self.random_state.randint(10000),
+        self.treemodel = lightgbm.LGBMClassifier(random_state=self.random_state.randint(10000),
                                         n_jobs=N_JOBS,
                                         **PARAMS)
-        self.model = fs.RFECV(model, cv=cv,)
+        self.model = fs.RFECV(self.treemodel, cv=cv,)
 
     def fit(self, X, Y):
         self.model.fit(X, Y)
