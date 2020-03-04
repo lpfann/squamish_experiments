@@ -12,6 +12,9 @@ from pathlib import Path
 from fri import genClassificationData
 import numpy as np
 import os
+import pathlib
+RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
+
 import logging
 logging = logging.getLogger(__name__)
 
@@ -165,7 +168,7 @@ class Toyset(Dataset):
 
 def import_Fibrosis(random_state, **kwargs):
     NA_THRESH = 0.92
-    table = pd.read_csv("../data/Fibrosis.csv")
+    table = pd.read_csv(RELATIVE_PATH/"../data/Fibrosis.csv")
 
     d = table.shape[1]
     table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
@@ -180,7 +183,7 @@ def import_Fibrosis(random_state, **kwargs):
 
 def import_colposcopy(random_state, **kwargs):
     NA_THRESH = 0.92
-    table = pd.read_csv("../data/Quality Assessment - Digital Colposcopy/green.csv")
+    table = pd.read_csv(RELATIVE_PATH/"../data/Quality Assessment - Digital Colposcopy/green.csv")
 
     d = table.shape[1]
     table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
@@ -195,7 +198,7 @@ def import_colposcopy(random_state, **kwargs):
 def import_cervical(random_state, **kwargs):
     NA_THRESH = 0.92
 
-    ds = pd.read_csv("../data/risk_factors_cervical_cancer.csv")
+    ds = pd.read_csv(RELATIVE_PATH/"../data/risk_factors_cervical_cancer.csv")
     y = ds.Schiller
 
     X = ds.iloc[:,:-4]
@@ -207,7 +210,7 @@ def import_cervical(random_state, **kwargs):
 
 def import_FLIP(random_state, **kwargs):
     NA_THRESH = 0.6
-    path = "../data/FLIP.csv"
+    path = RELATIVE_PATH/"../data/FLIP.csv"
     joined = os.path.join(os.path.dirname(__file__), path)
     table = pd.read_csv(joined)
 
@@ -228,7 +231,7 @@ def import_FLIP(random_state, **kwargs):
 
 def import_wbc(random_state, **kwargs):
     dset = pd.read_csv(
-        "../data/wdbc.data", index_col=0, header=None
+        RELATIVE_PATH/"../data/wdbc.data", index_col=0, header=None
     )
 
     y = LabelEncoder().fit_transform(dset[1]).flatten()
@@ -243,12 +246,12 @@ def import_T21(random_state, **kwargs):
     random_state = check_random_state(random_state)
     NA_THRESH = 0.9
     # cache big file
-    file = Path("../data/T21.feather")
+    file = Path(RELATIVE_PATH/"../data/T21.feather")
     if file.exists():
         table = pd.read_feather(str(file))
     else:
         table = pd.read_excel(
-            io="../data/data_50K_raw_N_T21.xlsx"
+            io=RELATIVE_PATH/"../data/data_50K_raw_N_T21.xlsx"
         )
         table.to_feather(str(file))
 
@@ -281,7 +284,7 @@ def import_SPECTF(random_state, **kwargs):
     random_state = check_random_state(random_state)
     NA_THRESH = 0.9
 
-    table = pd.read_csv("../data/SPECTF.csv")
+    table = pd.read_csv(RELATIVE_PATH/"../data/SPECTF.csv")
 
     d = table.shape[1]
     table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
