@@ -4,9 +4,10 @@
 import pathlib
 
 from sklearn.utils import check_random_state
+import os
 
-PATH = pathlib.Path("./output/importance_plots")
-
+PATH = pathlib.Path("./output/figures/importance_plots")
+os.makedirs(PATH, exist_ok=True)
 import lightgbm
 import boruta
 import numpy as np

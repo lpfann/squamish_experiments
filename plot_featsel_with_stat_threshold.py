@@ -8,8 +8,9 @@ import pathlib
 # In[3]:
 
 
-PATH = pathlib.Path("./output/importance_plots")
-
+PATH = pathlib.Path("./output/figures/featsel_threshold")
+import os
+os.makedirs(PATH, exist_ok=True)
 
 # In[4]:
 
@@ -53,7 +54,9 @@ def data(informative=5, redundant=10, d=17, n=300):
         random_state=STATE,
     )
     X = scale(X)
+    print()
     return X, y
+    
 
 
 

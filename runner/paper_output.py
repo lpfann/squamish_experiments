@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import argparse
 import sys
-
+import os
 from numpy.random import RandomState
 from sklearn.metrics import precision_score, recall_score, f1_score
 
@@ -15,16 +15,21 @@ import seaborn as sns
 from matplotlib.backends.backend_pgf import FigureCanvasPgf
 from sklearn.utils import check_random_state
 
+import pathlib
+OUTPUT_PATH = pathlib.Path(__file__).parent/("../output/tables/toy_benchmarks/")
+RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
 
-def load_file(name):
-    with open("./results/{}".format(name), "rb") as f:
+def load_file(path):
+    with open(path, "rb") as f:
         stability_res = pickle.load(f)
     return stability_res
 
 def print_df_astable(df, filename=None):
     output = df.to_latex(multicolumn=False, bold_rows=True)
     if filename is not None:
-        with open("../output/tables/{}.tex".format(filename), "w") as f:
+        os.makedirs(OUTPUT_PATH, exist_ok=True)
+        print(OUTPUT_PATH)
+        with open(OUTPUT_PATH/"{}.tex".format(filename), "w") as f:
             f.write(output)
     return output
 
@@ -154,7 +159,8 @@ if __name__ == '__main__':
     matplotlib.backend_bases.register_backend("pdf", FigureCanvasPgf)
     matplotlib.rcParams["pgf.rcfonts"] = False
     # Load style file
-    plt.style.use("../PaperDoubleFig.mplstyle")
+    style_file = pathlib.Path(__file__).parent.parent.resolve() / "PaperDoubleFig.mplstyle"
+    plt.style.use(str(style_file))
 
     toy_set_params = experiment_pipeline.toy_set_params
 
@@ -170,7 +176,8 @@ if __name__ == '__main__':
     else:
         if args.resfile is not None:
             # Load existing result
-            stability_res = load_file(args.resfile)
+            path = pathlib.Path(args.resfile)
+            stability_res = load_file(path)
         else:
             stability_res = run_new(n_bs=args.iters, seed=args.seed)
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 import pathlib
+PATH = pathlib.Path("./output/tables/prec_recall_arfs")
 
 from sklearn.utils import check_random_state
 
@@ -188,11 +189,12 @@ combined
 
 # In[114]:
 
-
+import os
 def print_df_astable(df, filename=None):
     output = df.to_latex(multicolumn=False, bold_rows=True)
     if filename is not None:
-        with open("./output/tables/{}.tex".format(filename), "w") as f:
+        os.makedirs(PATH, exist_ok=True)
+        with open(PATH/"{}.tex".format(filename), "w") as f:
             f.write(output)
     return output
 # In[115]:
