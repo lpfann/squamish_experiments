@@ -2,9 +2,13 @@ RESULT=runner/results/paper.dat
 OUTDIR = output
 MKDIR_P = mkdir -p
 
-all: $(OUTDIR)/tables/toy_benchmarks $(OUTDIR)/tables/prec_recall_arfs $(OUTDIR)/figures/importance_plots $(OUTDIR)/figures/featsel_threshold poetry.lock
+all: $(OUTDIR)/tables/toy_benchmarks $(OUTDIR)/tables/prec_recall_arfs $(OUTDIR)/figures/importance_plots $(OUTDIR)/figures/featsel_threshold
 
-.PHONY : clean all
+.PHONY : clean all test
+
+$(RESULT): runner/experiment_pipeline.py
+		python runner/experiment_pipeline.py --iters 3 --filename "test"   --models ElasticNet
+
 
 $(OUTDIR)/tables/toy_benchmarks : $(RESULT) runner/paper_output.py
 		python runner/paper_output.py --resfile $(RESULT)
