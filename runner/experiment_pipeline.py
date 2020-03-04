@@ -15,7 +15,9 @@ from fsmodel import RF, SQ, FRI, LM
 import logging
 
 logger = logging.getLogger("Experiment")
-
+import pathlib
+RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
+RESULTS_PATH = RELATIVE_PATH/"./results/"
 ## functions which are run in the worker threads for parallel computation
 def worker_stability(job: Job):
     return job.run_one_bootstrap()
@@ -90,11 +92,11 @@ def run_performance_experiment(stabResults, parallel, datasets):
 def save_results(res_it, filename):
     end_time = time.time()
     if filename is not None:
-        file = "res_{}.dat".format(filename)
+        file = "{}.dat".format(filename)
     else:
         file = "res_{}.dat".format(end_time)
 
-    with open("./results/{}".format(file), "wb") as f:
+    with open(RESULTS_PATH/"{}".format(file), "wb") as f:
         res = []
         for res in res_it:
             res_dict = defaultdict(list)
