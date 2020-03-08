@@ -16,38 +16,40 @@ from matplotlib.backends.backend_pgf import FigureCanvasPgf
 from sklearn.utils import check_random_state
 
 import pathlib
-OUTPUT_PATH = pathlib.Path(__file__).parent/("../output/tables/toy_benchmarks/")
+
+OUTPUT_PATH = pathlib.Path(__file__).parent / ("../output/tables/toy_benchmarks/")
 RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
+
 
 def load_file(path):
     with open(path, "rb") as f:
         stability_res = pickle.load(f)
     return stability_res
 
+
 def print_df_astable(df, filename=None):
     output = df.to_latex(multicolumn=False, bold_rows=True)
     if filename is not None:
         os.makedirs(OUTPUT_PATH, exist_ok=True)
         print(OUTPUT_PATH)
-        with open(OUTPUT_PATH/"{}.tex".format(filename), "w") as f:
+        with open(OUTPUT_PATH / "{}.tex".format(filename), "w") as f:
             f.write(output)
     return output
 
 
 def get_sim_param_table(toy_set_params, sim_set_names):
-    sim_params = (
-        pd.DataFrame.from_dict(toy_set_params)
-        .T.rename(index=sim_set_names)
-    )
+    sim_params = pd.DataFrame.from_dict(toy_set_params).T.rename(index=sim_set_names)
     sim_params.index.name = "Set"
     return sim_params
 
+
 def get_truth(params):
-    strong=params["strong"]
-    weak=params["weak"]
-    irrel=params["irr"]
+    strong = params["strong"]
+    weak = params["weak"]
+    irrel = params["irr"]
     truth = [True] * (strong + weak) + [False] * irrel
     return truth
+
 
 def get_sim_accuracy(stability_res, sim_set_names):
     toy_accuracy = (
@@ -67,19 +69,21 @@ def get_sim_accuracy(stability_res, sim_set_names):
     )
     return accuracy_on_sims
 
+
 def get_sim_scores(stability_res, toy_set_params):
 
     toyframe = stability_res.iloc[
         :, stability_res.columns.get_level_values(0).str.contains("Set")
     ]
     print(toyframe)
+
     def get_score_of_series(series, scorefnc):
         setname = series.name[0]
 
         def get_score(result):
             featset = result["features"]
             if 2 in featset:
-                featset = np.array(featset>0).astype(int)
+                featset = np.array(featset > 0).astype(int)
             truth_set = get_truth(toy_set_params[setname])
             return scorefnc(truth_set, featset)
 
@@ -112,7 +116,7 @@ def get_sim_scores(stability_res, toy_set_params):
     )
     toy_f1["type"] = "f1"
 
-    #toy_scores = pd.concat([toy_precision, toy_recall, toy_f1])
+    # toy_scores = pd.concat([toy_precision, toy_recall, toy_f1])
     toy_scores = toy_f1
 
     # toy_f1.groupby(["model", "data"]).mean().unstack()
@@ -128,6 +132,7 @@ def get_sim_scores(stability_res, toy_set_params):
     renamed_toy_scores = renamed_toy_scores.sort_index(axis=1).T
 
     return renamed_toy_scores
+
 
 def get_runtime_table(res_dict):
     runtime_frame = pd.DataFrame(res_dict).applymap(lambda r: r["runtime"])
@@ -147,19 +152,18 @@ def get_runtime_table(res_dict):
 def run_new(n_bs=3, seed=1337):
     seed = check_random_state(seed)
     res = experiment_pipeline.main_exp(
-        n_bootstraps=n_bs,
-        SEED=seed,
-        filename="paper_experiment",
-        toy=True,
+        n_bootstraps=n_bs, SEED=seed, filename="paper_experiment", toy=True,
     )
     return res
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     matplotlib.backend_bases.register_backend("pdf", FigureCanvasPgf)
     matplotlib.rcParams["pgf.rcfonts"] = False
     # Load style file
-    style_file = pathlib.Path(__file__).parent.parent.resolve() / "PaperDoubleFig.mplstyle"
+    style_file = (
+        pathlib.Path(__file__).parent.parent.resolve() / "PaperDoubleFig.mplstyle"
+    )
     plt.style.use(str(style_file))
 
     toy_set_params = experiment_pipeline.toy_set_params
@@ -190,7 +194,7 @@ if __name__ == '__main__':
         "Set6": "Set 6",
         "Set7": "Set 7",
         "Set8": "Set 8",
-        "Set9": "Set 9"
+        "Set9": "Set 9",
     }
 
     # Convert result dictionaries to dataframe
@@ -200,17 +204,16 @@ if __name__ == '__main__':
     )
     stability_res = list_df.dropna().T  # Drop invalid results
 
-
-    sim_params = get_sim_param_table(toy_set_params,sim_set_names)
+    sim_params = get_sim_param_table(toy_set_params, sim_set_names)
     print_df_astable(sim_params, "sim_params")
     print("#################### Simulation parameters")
     print(sim_params)
 
-    sim_scores = get_sim_scores(stability_res,toy_set_params)
+    sim_scores = get_sim_scores(stability_res, toy_set_params)
     print("#################### Simulation Scores")
     print(print_df_astable(sim_scores, "sim_scores"))
 
-    sim_accuracy = get_sim_accuracy(stability_res,sim_set_names)
+    sim_accuracy = get_sim_accuracy(stability_res, sim_set_names)
     print("#################### Training accuracy")
     print(print_df_astable(sim_accuracy, "sim_accuracy"))
 

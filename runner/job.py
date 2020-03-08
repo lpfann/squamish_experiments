@@ -1,7 +1,9 @@
 from contextlib import contextmanager
 import sys, os
 import logging
+
 logging = logging.getLogger("Job")
+
 
 @contextmanager
 def suppress_stdout():
@@ -127,10 +129,10 @@ class Job(object):
         # Timing the model
         start_time = time.time()
         model.fit(X, y)  # Run the model
-        #try:
+        # try:
         #    print()
         #    #with suppress_stdout():
-        #except Exception as e:
+        # except Exception as e:
         #    logging.exception("Error at set {} with model {}".format(self.setname, self.modelname))
         #    logging.exception("X shape is {}, y classes are {}".format(X.shape, np.unique(y)))
         #    return None
@@ -199,7 +201,6 @@ class Job(object):
 
         testscore = est.score(X_test, y_test)
 
-
         # We save the decision function, we can calculate ROC curves later in the analysis
         # TODO: do we need the decision function?, are there alternatives for ord. Regr?
         testdec = est.decision_function(X_test)
@@ -220,4 +221,3 @@ class Job(object):
         self.result_performance = result
 
         return self
-

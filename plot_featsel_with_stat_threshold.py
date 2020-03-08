@@ -10,6 +10,7 @@ import pathlib
 
 PATH = pathlib.Path("./output/figures/featsel_threshold")
 import os
+
 os.makedirs(PATH, exist_ok=True)
 
 # In[4]:
@@ -43,6 +44,7 @@ import matplotlib.pyplot as plt
 
 from arfs_gen import genClassificationData
 
+
 def data(informative=5, redundant=10, d=17, n=300):
     STATE = np.random.RandomState(seed=1231241)
 
@@ -56,33 +58,31 @@ def data(informative=5, redundant=10, d=17, n=300):
     X = scale(X)
     print()
     return X, y
-    
-
 
 
 # In[21]:
 
 
 import sys
+
 sys.path.append("../runner/")
 
 import squamish
 
 STATE = np.random.RandomState(seed=1231241)
-model = squamish.Main(random_state=STATE,n_resampling=50,fpr=1e-4)
+model = squamish.Main(random_state=STATE, n_resampling=50, fpr=1e-4)
 
 X, y = data()
 
-model.fit(X,y)
+model.fit(X, y)
 shadw_bounds = model.stat_.shadow_stat
 
-imps = model.rfmodel.importances() 
+imps = model.rfmodel.importances()
 
 relevant = imps > shadw_bounds[1]
 
 
-sns.barplot(x=np.arange(len(imps)),y=imps, hue=relevant)
-
+sns.barplot(x=np.arange(len(imps)), y=imps, hue=relevant)
 
 
 plt.axhline(shadw_bounds[1])
@@ -91,7 +91,3 @@ plt.savefig(PATH / "selection_with_statmethod.pdf")
 
 
 # In[ ]:
-
-
-
-

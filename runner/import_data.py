@@ -5,7 +5,7 @@ from collections import Counter
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.utils import resample, check_X_y, check_random_state,shuffle
+from sklearn.utils import resample, check_X_y, check_random_state, shuffle
 import math
 import scipy.io as sio
 from pathlib import Path
@@ -13,10 +13,13 @@ from fri import genClassificationData
 import numpy as np
 import os
 import pathlib
+
 RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
 
 import logging
+
 logging = logging.getLogger(__name__)
+
 
 class Dataset(object):
     def __init__(
@@ -80,10 +83,11 @@ class Dataset(object):
         n = X[0].shape[0]
         bs = [
             resample(
-                X,y,
+                X,
+                y,
                 replace=False,
                 n_samples=math.floor(perc * n),
-                random_state=self.random_state
+                random_state=self.random_state,
             )
             for bs in range(n_bootstraps)
         ]
@@ -103,7 +107,9 @@ class Dataset(object):
     def get_all_cv_folds(self, folds=10):
         X, y = self.X, self.y
 
-        kfold = ShuffleSplit(n_splits=folds, test_size=self.test_size, random_state=self.random_state)
+        kfold = ShuffleSplit(
+            n_splits=folds, test_size=self.test_size, random_state=self.random_state
+        )
         folds = []
         for train_index, test_index in kfold.split(X, y):
             # Split
@@ -123,7 +129,13 @@ class Dataset(object):
 
 class Toyset(Dataset):
     def __init__(
-        self, n_features=30, n_strel=4, n_redundant=4, n_samples=500, random_state=123, noise=0
+        self,
+        n_features=30,
+        n_strel=4,
+        n_redundant=4,
+        n_samples=500,
+        random_state=123,
+        noise=0,
     ):
         self.n_features = n_features
         self.n_strel = n_strel
@@ -138,7 +150,7 @@ class Toyset(Dataset):
             n_redundant=n_redundant,
             n_samples=n_samples,
             random_state=random_state,
-            noise=noise
+            noise=noise,
         )
 
         super().__init__(
@@ -155,7 +167,7 @@ class Toyset(Dataset):
                 n_redundant=self.n_redundant,
                 n_samples=self.n_samples,
                 random_state=self.random_state,
-                noise=self.noise
+                noise=self.noise,
             )
             y = LabelEncoder().fit_transform(y)
             scaler = StandardScaler()
@@ -165,10 +177,9 @@ class Toyset(Dataset):
         return self.bootstraps
 
 
-
 def import_Fibrosis(random_state, **kwargs):
     NA_THRESH = 0.92
-    table = pd.read_csv(RELATIVE_PATH/"../data/Fibrosis.csv")
+    table = pd.read_csv(RELATIVE_PATH / "../data/Fibrosis.csv")
 
     d = table.shape[1]
     table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
@@ -183,7 +194,9 @@ def import_Fibrosis(random_state, **kwargs):
 
 def import_colposcopy(random_state, **kwargs):
     NA_THRESH = 0.92
-    table = pd.read_csv(RELATIVE_PATH/"../data/Quality Assessment - Digital Colposcopy/green.csv")
+    table = pd.read_csv(
+        RELATIVE_PATH / "../data/Quality Assessment - Digital Colposcopy/green.csv"
+    )
 
     d = table.shape[1]
     table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN
@@ -195,22 +208,24 @@ def import_colposcopy(random_state, **kwargs):
     dataset = Dataset(X_raw, Y_raw, random_state=random_state, **kwargs)
     return dataset
 
+
 def import_cervical(random_state, **kwargs):
     NA_THRESH = 0.92
 
-    ds = pd.read_csv(RELATIVE_PATH/"../data/risk_factors_cervical_cancer.csv")
+    ds = pd.read_csv(RELATIVE_PATH / "../data/risk_factors_cervical_cancer.csv")
     y = ds.Schiller
 
-    X = ds.iloc[:,:-4]
-    X[X=="?"]=np.nan
-    #X = X.fillna(0)
+    X = ds.iloc[:, :-4]
+    X[X == "?"] = np.nan
+    # X = X.fillna(0)
 
     dataset = Dataset(X, y, random_state=random_state, **kwargs)
     return dataset
 
+
 def import_FLIP(random_state, **kwargs):
     NA_THRESH = 0.6
-    path = RELATIVE_PATH/"../data/FLIP.csv"
+    path = RELATIVE_PATH / "../data/FLIP.csv"
     joined = os.path.join(os.path.dirname(__file__), path)
     table = pd.read_csv(joined)
 
@@ -230,9 +245,7 @@ def import_FLIP(random_state, **kwargs):
 
 
 def import_wbc(random_state, **kwargs):
-    dset = pd.read_csv(
-        RELATIVE_PATH/"../data/wdbc.data", index_col=0, header=None
-    )
+    dset = pd.read_csv(RELATIVE_PATH / "../data/wdbc.data", index_col=0, header=None)
 
     y = LabelEncoder().fit_transform(dset[1]).flatten()
 
@@ -246,13 +259,11 @@ def import_T21(random_state, **kwargs):
     random_state = check_random_state(random_state)
     NA_THRESH = 0.9
     # cache big file
-    file = Path(RELATIVE_PATH/"../data/T21.feather")
+    file = Path(RELATIVE_PATH / "../data/T21.feather")
     if file.exists():
         table = pd.read_feather(str(file))
     else:
-        table = pd.read_excel(
-            io=RELATIVE_PATH/"../data/data_50K_raw_N_T21.xlsx"
-        )
+        table = pd.read_excel(io=RELATIVE_PATH / "../data/data_50K_raw_N_T21.xlsx")
         table.to_feather(str(file))
 
     d = table.shape[1]
@@ -284,7 +295,7 @@ def import_SPECTF(random_state, **kwargs):
     random_state = check_random_state(random_state)
     NA_THRESH = 0.9
 
-    table = pd.read_csv(RELATIVE_PATH/"../data/SPECTF.csv")
+    table = pd.read_csv(RELATIVE_PATH / "../data/SPECTF.csv")
 
     d = table.shape[1]
     table = table.dropna(thresh=NA_THRESH * d)  # Drop samples with > 90% NaN

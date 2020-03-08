@@ -16,8 +16,9 @@ import logging
 
 logger = logging.getLogger("Experiment")
 import pathlib
+
 RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
-RESULTS_PATH = RELATIVE_PATH/"./results/"
+RESULTS_PATH = RELATIVE_PATH / "./results/"
 ## functions which are run in the worker threads for parallel computation
 def worker_stability(job: Job):
     return job.run_one_bootstrap()
@@ -96,7 +97,7 @@ def save_results(res_it, filename):
     else:
         file = "res_{}.dat".format(end_time)
 
-    with open(RESULTS_PATH/"{}".format(file), "wb") as f:
+    with open(RESULTS_PATH / "{}".format(file), "wb") as f:
         res = []
         for res in res_it:
             res_dict = defaultdict(list)
@@ -125,10 +126,10 @@ def get_models(seed):
     rf = RF(random_state=seed)
 
     models = {
-         "FRI": fri_model_exc,
+        "FRI": fri_model_exc,
         "ElasticNet": eelm,
-         "RF": rf,
-         "SQ": sq,
+        "RF": rf,
+        "SQ": sq,
         # "AllFeatures": afm,
     }
     return models
@@ -171,7 +172,7 @@ toy_set_params = {
     "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
     "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
     "Set8": {"n": 2000, "strong": 10, "weak": 10, "irr": 50},
-    #"Set9": {"n": 5000, "strong": 10, "weak": 20, "irr": 200},
+    # "Set9": {"n": 5000, "strong": 10, "weak": 20, "irr": 200},
 }
 
 
@@ -285,4 +286,3 @@ if __name__ == "__main__":
         noise=args.noise,
         distributed=args.distributed,
     )
-
