@@ -95,12 +95,11 @@ class LM(FSmodel):
 class FRI(FSmodel):
     def __init__(self, probtype="ordreg", random_state=None):
         super().__init__(random_state=random_state)
-
         self.model = fri.FRI(
             fri.ProblemName.CLASSIFICATION,
             random_state=self.random_state,
-            slack_regularization=0.1,
-            slack_loss=0.1,
+            w_l1_slack=0.1,
+            loss_slack=0.1,
             n_probe_features=50,
             n_jobs=N_JOBS,
             n_param_search=50,
