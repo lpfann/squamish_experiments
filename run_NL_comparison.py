@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sklearn as sk
 import sklearn.datasets as data
+import pandas as pd
 
 import squamish.main
 import fri
@@ -11,22 +12,30 @@ import dataclasses
 from typing import List
 
 import pathlib
-PATH = pathlib.Path(__file__).parent 
-TMP = PATH / ("./output/tmp")
-EXP_FILE = "NL_experiment_results.pickle"
+
+PATH = pathlib.Path(__file__).parent
+TMP = PATH / ("./tmp")
+EXP_FILE = "NL_experiment_results"
+
+import metrics
+
 
 @dataclasses.dataclass
 class Result:
-    dataset : str
-    model : str
-    features : list
-    score : float
-    params : dict
+    dataset: str
+    model: str
+    features: list
+    precision: float
+    recall: float
+    f1: float
+    train_score: float
+    params: dict
+
 
 @dataclasses.dataclass
 class Experiment:
-    results : List[Result] = dataclasses.field(default_factory=list)
-    #def __init__(self):
+    results: List[Result] = dataclasses.field(default_factory=list)
+    # def __init__(self):
     #    self.results : list(Result) = []
 
     def res_by_set(self, dataset):
@@ -42,12 +51,11 @@ class Experiment:
     def add(self, result):
         self.results.append(result)
 
-    
 
 def run_experiment():
     state = np.random.RandomState(123)
     n_jobs = 1
-    repeats = 5
+    repeats = 2
 
     # Models
     f = fri.FRI(
@@ -57,13 +65,13 @@ def run_experiment():
         random_state=state,
         n_jobs=n_jobs,
     )
-    sq = squamish.main.Main(random_state=state, n_jobs=n_jobs)
+    sq = squamish.main.Main(random_state=state, n_jobs=n_jobs, verbose=False)
     models = {"FRI": f, "Sq": sq}
 
     # Data Generation
     generate_func = data.make_classification
     default_params = {
-        "n_samples": 300,
+        "n_samples": 1000,
         "n_classes": 2,
         "n_clusters_per_class": 2,
         "class_sep": 0.5,
@@ -76,37 +84,40 @@ def run_experiment():
     datasets = {
         1: {"n_features": 20, "n_informative": 10, "n_redundant": 0,},
         2: {"n_features": 20, "n_informative": 5, "n_redundant": 5,},
-        #3: {"n_features": 20, "n_informative": 5, "n_repeated": 10,},
+        3: {"n_features": 20, "n_informative": 5, "n_repeated": 10,},
+        4: {"n_features": 100, "n_informative": 20, "n_redundant": 20},
     }
-
-    exp = Experiment()
+    res_list = []
     for d_name, d_param in datasets.items():
         # Generate data with parameters
-        cur_param = dict(default_params,**d_param)
+        cur_param = dict(default_params, **d_param)
         X, y = generate_func(**cur_param)
         # Run models
         for m_name, model in models.items():
             for r in range(repeats):
                 model.fit(X, y)
-                score = model.score(X, y)
+                train_score = model.score(X, y)
                 features = model.relevance_classes_
-                result = Result(d_name, m_name, features, score, cur_param)
-                exp.add(result)
-        #print(exp)
-
-    with open(TMP/EXP_FILE, "wb") as file:
-        pickle.dump(exp,file)
+                truth = metrics.get_truth_new(cur_param)
+                scores = metrics.get_scores_for_set(truth, features)
+                result = Result(
+                    d_name, m_name, features, *scores, train_score, cur_param
+                )
+                res_list.append(vars(result))
+    exp = pd.DataFrame(res_list)
+    exp.to_csv(TMP / (EXP_FILE + ".csv"))
+    exp.to_pickle(TMP / (EXP_FILE + ".pickle"))
 
     return exp
+
 
 def analyze(exp=None):
     if exp is None:
         try:
-            with open(TMP/EXP_FILE, "rb") as file:
-                exp = pickle.load(file)
-        except IOError:
+            exp = pd.read_pickle(TMP / (EXP_FILE + ".pickle"))
+        except NameError:
             exp = run_experiment()
-    
+
+
 if __name__ == "__main__":
     exp = run_experiment()
-
