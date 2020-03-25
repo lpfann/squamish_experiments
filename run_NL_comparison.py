@@ -19,6 +19,7 @@ EXP_FILE = "NL_experiment_results"
 
 import metrics
 
+from utils import print_df_astable
 
 @dataclasses.dataclass
 class Result:
@@ -54,7 +55,7 @@ class Experiment:
 
 def run_experiment():
     state = np.random.RandomState(123)
-    n_jobs = 1
+    n_jobs = -1
     repeats = 2
 
     # Models
@@ -65,7 +66,7 @@ def run_experiment():
         random_state=state,
         n_jobs=n_jobs,
     )
-    sq = squamish.main.Main(random_state=state, n_jobs=n_jobs, verbose=False)
+    sq = squamish.main.Main(random_state=state, n_jobs=n_jobs, debug=False)
     models = {"FRI": f, "Sq": sq}
 
     # Data Generation
@@ -110,14 +111,31 @@ def run_experiment():
 
     return exp
 
-
-def analyze(exp=None):
-    if exp is None:
+def run(cached=True):
+    if cached:
         try:
             exp = pd.read_pickle(TMP / (EXP_FILE + ".pickle"))
+            return exp
         except NameError:
-            exp = run_experiment()
+            pass
+    exp = run_experiment()
+    return exp
 
+def analyze(exp=None):
+    exp = exp.set_index(["dataset","model"])
+
+    # Take mean
+    table = exp.groupby(["dataset","model"]).mean()
+    # Round
+    table = table.round(decimals=2)
+    print_df_astable(table, "per_dataset", folder="NL_toy_benchmarks")
+
+    # Take mean over all data
+    overallmean = exp.groupby(["model"]).mean()
+    # Round
+    overallmean = overallmean.round(decimals=2)    
+    print_df_astable(table, "mean_stats", folder="NL_toy_benchmarks")
 
 if __name__ == "__main__":
-    exp = run_experiment()
+    exp = run()
+    analyze(exp)
