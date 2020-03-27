@@ -443,25 +443,6 @@ version = "0.9.3"
 
 [[package]]
 category = "main"
-description = "Python library for serializing any arbitrary object graph into JSON"
-name = "jsonpickle"
-optional = false
-python-versions = "*"
-version = "1.3"
-
-[[package]]
-category = "main"
-description = "For serializing Python objects to JSON (dicts) and back"
-name = "jsons"
-optional = false
-python-versions = ">=3.5"
-version = "1.1.2"
-
-[package.dependencies]
-typish = ">=1.3.1"
-
-[[package]]
-category = "main"
 description = "An implementation of JSON Schema validation for Python"
 name = "jsonschema"
 optional = false
@@ -948,7 +929,7 @@ description = "Persistent/Functional/Immutable data structures"
 name = "pyrsistent"
 optional = false
 python-versions = "*"
-version = "0.15.7"
+version = "0.16.0"
 
 [package.dependencies]
 six = "*"
@@ -1239,14 +1220,6 @@ test = ["pytest", "mock"]
 
 [[package]]
 category = "main"
-description = "Functionality for types"
-name = "typish"
-optional = false
-python-versions = "*"
-version = "1.4.0"
-
-[[package]]
-category = "main"
 description = "Measures number of Terminal column cells of wide-character codes"
 name = "wcwidth"
 optional = false
@@ -1297,7 +1270,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "857b52a348c046e11225a4aae3ebb1f1fd3b8266fbc9d02b738acb7b1b09a5d0"
+content-hash = "ae13b8616f2f9afd82daf762b8e09d60a73a3aa207047c32c245bcc5e80a1089"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -1456,13 +1429,6 @@ joblib = [
 json5 = [
     {file = "json5-0.9.3-py2.py3-none-any.whl", hash = "sha256:c24ea55fea5823240c8a3fbd85aa959ccf4127d0e28a95c55e3a4e1f97495946"},
     {file = "json5-0.9.3.tar.gz", hash = "sha256:ed357b4faf8e86829ef00d61b28ceedd3b29eeb7c24feb5d1bb22d69cfcc282f"},
-]
-jsonpickle = [
-    {file = "jsonpickle-1.3-py2.py3-none-any.whl", hash = "sha256:efc6839cb341985f0c24f98650a4c1063a2877c236ffd3d7e1662f0c482bac93"},
-    {file = "jsonpickle-1.3.tar.gz", hash = "sha256:71bca2b80ae28af4e3f86629ef247100af7f97032b5ca8d791c1f8725b411d95"},
-]
-jsons = [
-    {file = "jsons-1.1.2-py3-none-any.whl", hash = "sha256:7b813225eb4b13b85faa6d911f390f1823b2b94b4bf91598ff056fe21adb25e5"},
 ]
 jsonschema = [
     {file = "jsonschema-3.2.0-py2.py3-none-any.whl", hash = "sha256:4e5b3cf8216f577bee9ce139cbe72eca3ea4f292ec60928ff24758ce626cd163"},
@@ -1802,7 +1768,7 @@ pyparsing = [
     {file = "pyparsing-2.4.6.tar.gz", hash = "sha256:4c830582a84fb022400b85429791bc551f1f4871c33f23e44f353119e92f969f"},
 ]
 pyrsistent = [
-    {file = "pyrsistent-0.15.7.tar.gz", hash = "sha256:cdc7b5e3ed77bed61270a47d35434a30617b9becdf2478af76ad2c6ade307280"},
+    {file = "pyrsistent-0.16.0.tar.gz", hash = "sha256:28669905fe725965daa16184933676547c5bb40a5153055a8dee2a4bd7933ad3"},
 ]
 pytest = [
     {file = "pytest-5.4.1-py3-none-any.whl", hash = "sha256:0e5b30f5cb04e887b91b1ee519fa3d89049595f428c1db76e73bd7f17b09b172"},
@@ -1993,9 +1959,6 @@ tqdm = [
 traitlets = [
     {file = "traitlets-4.3.3-py2.py3-none-any.whl", hash = "sha256:70b4c6a1d9019d7b4f6846832288f86998aa3b9207c6821f3578a6a6a467fe44"},
     {file = "traitlets-4.3.3.tar.gz", hash = "sha256:d023ee369ddd2763310e4c3eae1ff649689440d4ae59d7485eb4cfbbe3e359f7"},
-]
-typish = [
-    {file = "typish-1.4.0-py3-none-any.whl", hash = "sha256:500be62518b8782fc34ef57243e0a9b15a7e6adc2cb342b0ae9e2d9dbe4ecdd8"},
 ]
 wcwidth = [
     {file = "wcwidth-0.1.9-py2.py3-none-any.whl", hash = "sha256:cafe2186b3c009a04067022ce1dcd79cb38d8d65ee4f4791b8888d6599d1bbe1"},
