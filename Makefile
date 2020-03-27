@@ -3,7 +3,7 @@ OUTDIR = output
 TMPDIR = tmp
 MKDIR_P = mkdir -p
 
-all: $(OUTDIR)/tables/toy_benchmarks $(OUTDIR)/tables/prec_recall_arfs $(OUTDIR)/figures/importance_plots $(OUTDIR)/figures/featsel_threshold
+all: $(OUTDIR)/tables/toy_benchmarks $(OUTDIR)/tables/prec_recall_arfs $(OUTDIR)/figures/importance_plots $(OUTDIR)/figures/featsel_threshold $(OUTDIR)/tables/NL_toy_benchmarks
 
 .PHONY : clean all test
 
