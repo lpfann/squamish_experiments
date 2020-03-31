@@ -59,10 +59,7 @@ class Experiment:
         self.results.append(result)
 
 
-def run_experiment():
-    state = np.random.RandomState(123)
-    n_jobs = -1
-    repeats = 2
+def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 2):
 
     # Models
     # f = fri.FRI(
@@ -83,7 +80,6 @@ def run_experiment():
     # }
     models = experiment_pipeline.get_models(state)
 
-
     # Data Generation
     generate_func = data.make_classification
     default_params = {
@@ -98,10 +94,10 @@ def run_experiment():
         "random_state": state,
     }
     datasets = {
-        1: {"n_features": 20, "n_informative": 10, "n_redundant": 0,},
-        2: {"n_features": 20, "n_informative": 5, "n_redundant": 5,},
-        3: {"n_features": 20, "n_informative": 5, "n_repeated": 10,},
-        4: {"n_features": 100, "n_informative": 20, "n_redundant": 20},
+        "NL 1": {"n_features": 20, "n_informative": 10, "n_redundant": 0,},
+        "NL 2": {"n_features": 20, "n_informative": 5, "n_redundant": 5,},
+        "NL 3": {"n_features": 20, "n_informative": 5, "n_repeated": 10,},
+        "NL 4": {"n_features": 100, "n_informative": 20, "n_redundant": 20},
     }
     res_list = []
     for d_name, d_param in datasets.items():
