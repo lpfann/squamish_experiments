@@ -129,12 +129,6 @@ weakly_recall = convert_frame(feature_frame.apply(rowfunc, axis=1,args=[1,recall
 weakly = pd.concat([weakly_precision,weakly_recall],axis=1).unstack(level=0).T
 
 
-# In[104]:
-
-
-weakly
-
-
 # In[105]:
 
 
@@ -189,17 +183,11 @@ combined
 
 # In[114]:
 
-import os
-def print_df_astable(df, filename=None):
-    output = df.to_latex(multicolumn=False, bold_rows=True)
-    if filename is not None:
-        os.makedirs(PATH, exist_ok=True)
-        with open(PATH/"{}.tex".format(filename), "w") as f:
-            f.write(output)
-    return output
+import utils
+
 # In[115]:
 
-print_df_astable(combined, "prec_rec_ARFS")
+utils.print_df_astable(combined, "prec_rec_ARFS", folder="prec_recall_arfs")
 
 
 # In[117]:
@@ -210,7 +198,7 @@ combined_mean = combined.groupby(level=0).mean()
 
 # In[118]:
 
-print_df_astable(combined_mean,"prec_rec_ARFS_mean")
+utils.print_df_astable(combined_mean,"prec_rec_ARFS_mean",folder="prec_recall_arfs")
 
 
 # In[ ]:
