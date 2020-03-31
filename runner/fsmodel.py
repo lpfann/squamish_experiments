@@ -93,7 +93,7 @@ class LM(FSmodel):
 
 
 class FRI(FSmodel):
-    def __init__(self, probtype="ordreg", random_state=None):
+    def __init__(self, random_state=None):
         super().__init__(random_state=random_state)
         self.model = fri.FRI(
             fri.ProblemName.CLASSIFICATION,

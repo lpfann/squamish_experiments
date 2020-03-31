@@ -16,10 +16,13 @@ from matplotlib.backends.backend_pgf import FigureCanvasPgf
 from sklearn.utils import check_random_state
 
 import pathlib
-
+RES_PATH = pathlib.Path(__file__).parent / ("./results/")
 OUTPUT_PATH = pathlib.Path(__file__).parent / ("../output/tables/toy_benchmarks/")
 RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
 
+import sys
+sys.path.append("../")
+from utils import print_df_astable
 
 def load_file(path):
     with open(path, "rb") as f:
@@ -27,13 +30,8 @@ def load_file(path):
     return stability_res
 
 
-def print_df_astable(df, filename=None):
-    output = df.to_latex(multicolumn=False, bold_rows=True)
-    if filename is not None:
-        os.makedirs(OUTPUT_PATH, exist_ok=True)
-        print(OUTPUT_PATH)
-        with open(OUTPUT_PATH / "{}.tex".format(filename), "w") as f:
-            f.write(output)
+def _print_df_astable(df, filename=None):
+    output = print_df_astable(df, filename, folder="toy_benchmarks")
     return output
 
 
@@ -181,6 +179,7 @@ if __name__ == "__main__":
         if args.resfile is not None:
             # Load existing result
             path = pathlib.Path(args.resfile)
+            print(f"Load from {path}")
             stability_res = load_file(path)
         else:
             stability_res = run_new(n_bs=args.iters, seed=args.seed)
@@ -205,19 +204,19 @@ if __name__ == "__main__":
     stability_res = list_df.dropna().T  # Drop invalid results
 
     sim_params = get_sim_param_table(toy_set_params, sim_set_names)
-    print_df_astable(sim_params, "sim_params")
+    _print_df_astable(sim_params, "sim_params")
     print("#################### Simulation parameters")
     print(sim_params)
 
     sim_scores = get_sim_scores(stability_res, toy_set_params)
     print("#################### Simulation Scores")
-    print(print_df_astable(sim_scores, "sim_scores"))
+    print(_print_df_astable(sim_scores, "sim_scores"))
 
     sim_accuracy = get_sim_accuracy(stability_res, sim_set_names)
     print("#################### Training accuracy")
-    print(print_df_astable(sim_accuracy, "sim_accuracy"))
+    print(_print_df_astable(sim_accuracy, "sim_accuracy"))
 
     runtime = get_runtime_table(stability_res)
-    runtime = print_df_astable(runtime, "runtime")
+    runtime = _print_df_astable(runtime, "runtime")
     print("#################### Runtime of methods")
     print(runtime)

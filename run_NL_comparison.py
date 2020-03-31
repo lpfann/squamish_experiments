@@ -21,6 +21,12 @@ import metrics
 
 from utils import print_df_astable
 
+import sys
+
+sys.path.append("./runner/")
+import fsmodel, experiment_pipeline
+
+
 @dataclasses.dataclass
 class Result:
     dataset: str
@@ -59,15 +65,24 @@ def run_experiment():
     repeats = 2
 
     # Models
-    f = fri.FRI(
-        fri.ProblemName.CLASSIFICATION,
-        n_probe_features=50,
-        verbose=False,
-        random_state=state,
-        n_jobs=n_jobs,
-    )
-    sq = squamish.main.Main(random_state=state, n_jobs=n_jobs, debug=False)
-    models = {"FRI": f, "Sq": sq}
+    # f = fri.FRI(
+    #     fri.ProblemName.CLASSIFICATION,
+    #     n_probe_features=50,
+    #     verbose=False,
+    #     random_state=state,
+    #     n_jobs=n_jobs,
+    # )
+    # sq = squamish.main.Main(random_state=state, n_jobs=n_jobs, debug=False)
+    # eelm = fsmodel.LM(random_state=state)
+    # rf = fsmodel.RF(random_state=state)
+    # models = {
+    #     "FRI": f,
+    #     "Sq": sq,
+    #     "ElasticNet": eelm,
+    #     "RF": rf,
+    # }
+    models = experiment_pipeline.get_models(state)
+
 
     # Data Generation
     generate_func = data.make_classification
@@ -98,7 +113,7 @@ def run_experiment():
             for r in range(repeats):
                 model.fit(X, y)
                 train_score = model.score(X, y)
-                features = model.relevance_classes_
+                features = model.support()
                 truth = metrics.get_truth_new(cur_param)
                 scores = metrics.get_scores_for_set(truth, features)
                 result = Result(
@@ -111,6 +126,7 @@ def run_experiment():
 
     return exp
 
+
 def run(cached=True):
     if cached:
         try:
@@ -118,24 +134,31 @@ def run(cached=True):
             return exp
         except NameError:
             pass
+        except FileNotFoundError:
+            pass
     exp = run_experiment()
     return exp
 
+
 def analyze(exp=None):
-    exp = exp.set_index(["dataset","model"])
+    exp = exp.set_index(["dataset", "model"])
 
     # Take mean
-    table = exp.groupby(["dataset","model"]).mean()
+    table = exp.groupby(["dataset", "model"]).mean()
     # Round
     table = table.round(decimals=2)
+    # Reformat
+    table = table.stack().swaplevel(i=-3, j=-1).unstack(["model"])
     print_df_astable(table, "per_dataset", folder="NL_toy_benchmarks")
 
     # Take mean over all data
     overallmean = exp.groupby(["model"]).mean()
     # Round
-    overallmean = overallmean.round(decimals=2)    
-    print_df_astable(table, "mean_stats", folder="NL_toy_benchmarks")
+    overallmean = overallmean.round(decimals=2)
+    print_df_astable(overallmean, "mean_stats", folder="NL_toy_benchmarks")
+    return table, overallmean
+
 
 if __name__ == "__main__":
     exp = run()
-    analyze(exp)
+    table, overallmean = analyze(exp)
