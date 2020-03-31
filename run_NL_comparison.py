@@ -26,6 +26,24 @@ import sys
 sys.path.append("./runner/")
 import fsmodel, experiment_pipeline
 
+# Data Generation
+generate_func = data.make_classification
+default_params = {
+    "n_samples": 1000,
+    "n_classes": 2,
+    "n_clusters_per_class": 2,
+    "class_sep": 0.5,
+    "hypercube": True,
+    "shift": 0.0,
+    "scale": 1.0,
+    "shuffle": False
+}
+datasets = {
+    "NL 1": {"n_features": 20, "n_informative": 10, "n_redundant": 0,},
+    "NL 2": {"n_features": 20, "n_informative": 5, "n_redundant": 5,},
+    "NL 3": {"n_features": 20, "n_informative": 5, "n_repeated": 10,},
+    "NL 4": {"n_features": 100, "n_informative": 20, "n_redundant": 20},
+}
 
 @dataclasses.dataclass
 class Result:
@@ -80,25 +98,7 @@ def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 
     # }
     models = experiment_pipeline.get_models(state)
 
-    # Data Generation
-    generate_func = data.make_classification
-    default_params = {
-        "n_samples": 1000,
-        "n_classes": 2,
-        "n_clusters_per_class": 2,
-        "class_sep": 0.5,
-        "hypercube": True,
-        "shift": 0.0,
-        "scale": 1.0,
-        "shuffle": False,
-        "random_state": state,
-    }
-    datasets = {
-        "NL 1": {"n_features": 20, "n_informative": 10, "n_redundant": 0,},
-        "NL 2": {"n_features": 20, "n_informative": 5, "n_redundant": 5,},
-        "NL 3": {"n_features": 20, "n_informative": 5, "n_repeated": 10,},
-        "NL 4": {"n_features": 100, "n_informative": 20, "n_redundant": 20},
-    }
+    default_params["random_state"] = state
     res_list = []
     for d_name, d_param in datasets.items():
         # Generate data with parameters
@@ -152,9 +152,16 @@ def analyze(exp=None):
     # Round
     overallmean = overallmean.round(decimals=2)
     print_df_astable(overallmean, "mean_stats", folder="NL_toy_benchmarks")
+
+    preset = pd.DataFrame(datasets).T
+    preset[preset.isna()] = 0
+    preset = preset.astype(int)
+    preset.index.names = ["Set"]
+    print_df_astable(preset.T, "presets", folder="NL_toy_benchmarks")
     return table, overallmean
 
 
 if __name__ == "__main__":
     exp = run()
     table, overallmean = analyze(exp)
+    
