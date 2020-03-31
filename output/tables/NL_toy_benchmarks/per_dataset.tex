@@ -1,15 +1,26 @@
 \begin{tabular}{llrrrr}
 \toprule
-  &    &  precision &  recall &    f1 &  train\_score \\
-\textbf{dataset} & \textbf{model} &            &         &       &              \\
+            & \textbf{model} &  ElasticNet &  FRI &   RF &   SQ \\
+{} & \textbf{dataset} &             &      &      &      \\
 \midrule
-\textbf{1} & \textbf{FRI} &       0.00 &    0.00 &  0.00 &         0.66 \\
-  & \textbf{Sq} &       1.00 &    1.00 &  1.00 &         0.77 \\
-\textbf{2} & \textbf{FRI} &       1.00 &    0.25 &  0.38 &         0.68 \\
-  & \textbf{Sq} &       1.00 &    1.00 &  1.00 &         0.78 \\
-\textbf{3} & \textbf{FRI} &       0.82 &    0.60 &  0.69 &         0.72 \\
-  & \textbf{Sq} &       0.88 &    0.93 &  0.90 &         0.80 \\
-\textbf{4} & \textbf{FRI} &       0.50 &    0.06 &  0.11 &         0.69 \\
-  & \textbf{Sq} &       1.00 &    0.76 &  0.87 &         0.79 \\
+\multirow{4}{*}{\textbf{precision}} & \textbf{1} &        0.50 & 0.00 & 1.00 & 1.00 \\
+            & \textbf{2} &        1.00 & 0.00 & 0.82 & 1.00 \\
+            & \textbf{3} &        0.82 & 0.84 & 1.00 & 0.88 \\
+            & \textbf{4} &        1.00 & 1.00 & 1.00 & 1.00 \\
+\cline{1-6}
+\multirow{4}{*}{\textbf{recall}} & \textbf{1} &        0.70 & 0.00 & 0.60 & 1.00 \\
+            & \textbf{2} &        0.20 & 0.00 & 0.90 & 1.00 \\
+            & \textbf{3} &        0.60 & 0.73 & 0.47 & 1.00 \\
+            & \textbf{4} &        0.10 & 0.26 & 0.57 & 0.76 \\
+\cline{1-6}
+\multirow{4}{*}{\textbf{f1}} & \textbf{1} &        0.58 & 0.00 & 0.75 & 1.00 \\
+            & \textbf{2} &        0.33 & 0.00 & 0.86 & 1.00 \\
+            & \textbf{3} &        0.69 & 0.78 & 0.64 & 0.94 \\
+            & \textbf{4} &        0.18 & 0.41 & 0.73 & 0.87 \\
+\cline{1-6}
+\multirow{4}{*}{\textbf{train\_score}} & \textbf{1} &        0.62 & 0.66 & 0.76 & 0.75 \\
+            & \textbf{2} &        0.50 & 0.62 & 0.84 & 0.81 \\
+            & \textbf{3} &        0.68 & 0.66 & 0.81 & 0.76 \\
+            & \textbf{4} &        0.68 & 0.71 & 0.87 & 0.76 \\
 \bottomrule
 \end{tabular}
