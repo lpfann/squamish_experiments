@@ -164,14 +164,14 @@ def get_datasets(seed):
 
 
 toy_set_params = {
-    "Set1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
-    "Set2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
-    "Set3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
-    "Set4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
-    "Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
-    "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
-    "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
-    "Set8": {"n": 2000, "strong": 10, "weak": 10, "irr": 50},
+    "Set 1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
+    "Set 2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
+    "Set 3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
+    "Set 4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
+    "Set 5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
+    "Set 6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
+    "Set 7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
+    "Set 8": {"n": 2000, "strong": 10, "weak": 10, "irr": 50},
     # "Set9": {"n": 5000, "strong": 10, "weak": 20, "irr": 200},
 }
 

@@ -35,8 +35,9 @@ def _print_df_astable(df, filename=None):
     return output
 
 
-def get_sim_param_table(toy_set_params, sim_set_names):
-    sim_params = pd.DataFrame.from_dict(toy_set_params).T.rename(index=sim_set_names)
+def get_sim_param_table(toy_set_params):
+    
+    sim_params = pd.DataFrame.from_dict(toy_set_params).T
     sim_params.index.name = "Set"
     return sim_params
 
@@ -49,7 +50,7 @@ def get_truth(params):
     return truth
 
 
-def get_sim_accuracy(stability_res, sim_set_names):
+def get_sim_accuracy(stability_res):
     toy_accuracy = (
         pd.DataFrame(stability_res)
         .applymap(lambda r: r["train_scores"])
@@ -61,7 +62,6 @@ def get_sim_accuracy(stability_res, sim_set_names):
         toy_accuracy.groupby(level=[0, 1])
         .mean()
         .unstack()
-        .rename(index=sim_set_names)
         .sort_index()
         .round(decimals=2)
     )
@@ -82,7 +82,12 @@ def get_sim_scores(stability_res, toy_set_params):
             featset = result["features"]
             if 2 in featset:
                 featset = np.array(featset > 0).astype(int)
-            truth_set = get_truth(toy_set_params[setname])
+            try:
+                # Try old naming of Sets withhout whitespace after "Set" (for  e.g. Set1)
+                truth_set = get_truth(toy_set_params[setname])
+            except KeyError: # Error with new format e.g. "Set 1"
+                newkey = setname[:3]+" "+setname[-1]
+                truth_set = get_truth(toy_set_params[newkey])
             return scorefnc(truth_set, featset)
 
         prec_vec = map(get_score, series)
@@ -125,7 +130,7 @@ def get_sim_scores(stability_res, toy_set_params):
     # grouped_toy_scores = grouped_toy_scores.unstack("data")
 
     renamed_toy_scores = (
-        grouped_toy_scores.round(decimals=2).unstack(1).rename(columns=sim_set_names)
+        grouped_toy_scores.round(decimals=2).unstack(1)
     )
     renamed_toy_scores = renamed_toy_scores.sort_index(axis=1).T
 
@@ -143,7 +148,7 @@ def get_runtime_table(res_dict):
     runtime_frame = (
         runtime_frame.groupby(["model", "data"]).mean().unstack().astype(int)
     )
-    runtime_frame = runtime_frame.rename(columns=sim_set_names).sort_index(axis=1).T
+    runtime_frame = runtime_frame.sort_index(axis=1).T
     return runtime_frame
 
 
@@ -154,6 +159,17 @@ def run_new(n_bs=3, seed=1337):
     )
     return res
 
+def rename_old_namingscheme(stability_res):
+    #If no whitespace between Set and Number rename keys to match new format WITH whitespace
+    keys = stability_res.keys()
+    probe = list(keys)[0]
+    newstab = {}
+    if " " not in probe[0]:
+        for k in stability_res.keys():
+            dataset, model = k
+            newkey = dataset[:3]+" "+dataset[-1]
+            newstab[(newkey, model)] = stability_res[k]
+    return newstab
 
 if __name__ == "__main__":
     matplotlib.backend_bases.register_backend("pdf", FigureCanvasPgf)
@@ -183,27 +199,19 @@ if __name__ == "__main__":
             stability_res = load_file(path)
         else:
             stability_res = run_new(n_bs=args.iters, seed=args.seed)
+    
 
-    sim_set_names = {
-        "Set1": "Set 1",
-        "Set2": "Set 2",
-        "Set3": "Set 3",
-        "Set4": "Set 4",
-        "Set5": "Set 5",
-        "Set6": "Set 6",
-        "Set7": "Set 7",
-        "Set8": "Set 8",
-        "Set9": "Set 9",
-    }
+    stability_res = rename_old_namingscheme(stability_res)
 
     # Convert result dictionaries to dataframe
     index = pd.MultiIndex.from_tuples(stability_res.keys())
+
     list_df = pd.DataFrame(
         [pd.Series(value) for value in stability_res.values()], index=index
     )
     stability_res = list_df.dropna().T  # Drop invalid results
 
-    sim_params = get_sim_param_table(toy_set_params, sim_set_names)
+    sim_params = get_sim_param_table(toy_set_params)
     _print_df_astable(sim_params, "sim_params")
     print("#################### Simulation parameters")
     print(sim_params)
@@ -212,7 +220,7 @@ if __name__ == "__main__":
     print("#################### Simulation Scores")
     print(_print_df_astable(sim_scores, "sim_scores"))
 
-    sim_accuracy = get_sim_accuracy(stability_res, sim_set_names)
+    sim_accuracy = get_sim_accuracy(stability_res)
     print("#################### Training accuracy")
     print(_print_df_astable(sim_accuracy, "sim_accuracy"))
 
