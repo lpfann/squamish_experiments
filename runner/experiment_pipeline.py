@@ -15,7 +15,10 @@ from fsmodel import RF, SQ, FRI, LM
 import logging
 
 logger = logging.getLogger("Experiment")
+import pathlib
 
+RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
+RESULTS_PATH = RELATIVE_PATH / "./results/"
 ## functions which are run in the worker threads for parallel computation
 def worker_stability(job: Job):
     return job.run_one_bootstrap()
@@ -90,11 +93,11 @@ def run_performance_experiment(stabResults, parallel, datasets):
 def save_results(res_it, filename):
     end_time = time.time()
     if filename is not None:
-        file = "res_{}.dat".format(filename)
+        file = "{}.dat".format(filename)
     else:
         file = "res_{}.dat".format(end_time)
 
-    with open("./results/{}".format(file), "wb") as f:
+    with open(RESULTS_PATH / "{}".format(file), "wb") as f:
         res = []
         for res in res_it:
             res_dict = defaultdict(list)
@@ -123,10 +126,10 @@ def get_models(seed):
     rf = RF(random_state=seed)
 
     models = {
-         "FRI": fri_model_exc,
+        "FRI": fri_model_exc,
         "ElasticNet": eelm,
-         "RF": rf,
-         "SQ": sq,
+        "RF": rf,
+        "SQ": sq,
         # "AllFeatures": afm,
     }
     return models
@@ -161,15 +164,15 @@ def get_datasets(seed):
 
 
 toy_set_params = {
-    "Set1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
-    "Set2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
-    "Set3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
-    "Set4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
-    "Set5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
-    "Set6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
-    "Set7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
-    "Set8": {"n": 2000, "strong": 10, "weak": 10, "irr": 50},
-    #"Set9": {"n": 5000, "strong": 10, "weak": 20, "irr": 200},
+    "Set 1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
+    "Set 2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
+    "Set 3": {"n": 150, "strong": 3, "weak": 4, "irr": 3},
+    "Set 4": {"n": 256, "strong": 6, "weak": 6, "irr": 6},
+    "Set 5": {"n": 512, "strong": 1, "weak": 2, "irr": 11},
+    "Set 6": {"n": 200, "strong": 1, "weak": 20, "irr": 0},
+    "Set 7": {"n": 200, "strong": 1, "weak": 20, "irr": 20},
+    "Set 8": {"n": 2000, "strong": 10, "weak": 10, "irr": 50},
+    # "Set9": {"n": 5000, "strong": 10, "weak": 20, "irr": 200},
 }
 
 
@@ -283,4 +286,3 @@ if __name__ == "__main__":
         noise=args.noise,
         distributed=args.distributed,
     )
-

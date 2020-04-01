@@ -6,18 +6,26 @@ import numpy as np
 from sklearn.feature_selection import RFECV, SelectFromModel
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import check_random_state
-from sklearn.linear_model import Lasso, Ridge, ElasticNet,LogisticRegression,SGDClassifier
+from sklearn.linear_model import (
+    Lasso,
+    Ridge,
+    ElasticNet,
+    LogisticRegression,
+    SGDClassifier,
+)
+from sklearn.model_selection import cross_val_score
+
 import sklearn.feature_selection as fs
 import lightgbm
 
 import fri
-import linear_models
 
 import squamish
 import logging
 
 
 N_JOBS = 1
+
 
 class FSmodel(object):
     """
@@ -44,7 +52,7 @@ class FSmodel(object):
         return self.support_
 
     @abc.abstractmethod
-    def predict(self,X):
+    def predict(self, X):
         return
 
 
@@ -52,21 +60,24 @@ class LM(FSmodel):
     def __init__(self, random_state=None):
         super().__init__(random_state=random_state)
 
-
     def fit(self, X, Y):
-        model = SGDClassifier(max_iter=100,tol=1e-3, random_state=self.random_state)
-        tuned_parameters = {"alpha":  [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
-                            "l1_ratio":[0, 0.01, 0.1, 0.2, 0.5, 0.7,1]}
+        model = SGDClassifier(max_iter=100, tol=1e-3, random_state=self.random_state)
+        tuned_parameters = {
+            "alpha": [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
+            "l1_ratio": [0, 0.01, 0.1, 0.2, 0.5, 0.7, 1],
+        }
         cv = 3
         gridsearch = GridSearchCV(
-            model, tuned_parameters, cv=cv, verbose=0, error_score=np.nan,n_jobs=N_JOBS
+            model, tuned_parameters, cv=cv, verbose=0, error_score=np.nan, n_jobs=N_JOBS
         )
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             gridsearch.fit(X, Y)
         self.model = gridsearch.best_estimator_
-        self.selector = RFECV(estimator=self.model, cv=5, min_features_to_select=2, n_jobs=N_JOBS)
+        self.selector = RFECV(
+            estimator=self.model, cv=5, min_features_to_select=2, n_jobs=N_JOBS
+        )
         self.selector.fit(X, Y)
         self.support_ = self.selector.get_support()
         return self
@@ -76,20 +87,22 @@ class LM(FSmodel):
 
     def score(self, X, y):
         return self.model.score(X, y)
+
     def predict(self, X):
         return self.model.predict(X)
 
-class FRI(FSmodel):
-    def __init__(self, probtype="ordreg",random_state=None):
-        super().__init__(random_state=random_state)
 
-        self.model = fri.FRI(fri.ProblemName.CLASSIFICATION,
+class FRI(FSmodel):
+    def __init__(self, random_state=None):
+        super().__init__(random_state=random_state)
+        self.model = fri.FRI(
+            fri.ProblemName.CLASSIFICATION,
             random_state=self.random_state,
-            slack_regularization=0.1,
-            slack_loss=0.1,
+            w_l1_slack=0.1,
+            loss_slack=0.1,
             n_probe_features=50,
             n_jobs=N_JOBS,
-            n_param_search=50
+            n_param_search=50,
         )
 
     def fit(self, X, Y):
@@ -99,68 +112,68 @@ class FRI(FSmodel):
 
     def support(self):
         return self.model.relevance_classes_
-        
+
     def score(self, X, y):
         return self.model.score(X, y)
 
     def predict(self, X):
         return self.model.optim_model_.predict(X)
 
+
 class SQ(FSmodel):
-    def __init__(self,random_state=None):
+    def __init__(self, random_state=None):
         super().__init__(random_state=random_state)
 
-        self.model = squamish.Main(
-            random_state=self.random_state,
-            n_jobs=N_JOBS
-        )
+        self.model = squamish.Main(random_state=self.random_state, n_jobs=N_JOBS)
 
     def fit(self, X, Y):
+
         self.model.fit(X, Y)
+        logging.info(self.score(X, Y))
 
         return self
 
     def support(self):
         return self.model.relevance_classes_
-        
+
     def score(self, X, y):
         return self.model.score(X, y)
 
     def predict(self, X):
         return self.model.predict(X)
 
+
 class RF(FSmodel):
-    def __init__(self,random_state=None, cv=5):
+    def __init__(self, random_state=None, cv=5):
         super().__init__(random_state=random_state)
         PARAMS = {
-        #"max_depth": 5,
-        #"boosting_type": "rf",
-        #"bagging_fraction": 0.632,
-        #"bagging_freq": 1,
-        #"subsample":None,
-        #"subsample_freq":None,
-        #"feature_fraction": 0.8,
-        #"importance_type": "gain",
-        "verbose": -1,
+            "num_leaves": 32,
+            "max_depth": 5,
+            "boosting_type": "rf",
+            "bagging_fraction": 0.632,
+            "bagging_freq": 1,
+            # "feature_fraction": 0.8,
+            "verbose": -1,
         }
-        model = lightgbm.LGBMClassifier(random_state=self.random_state.randint(10000),
-                                        n_jobs=N_JOBS,
-                                        **PARAMS)
-        self.model = fs.RFECV(model, cv=cv,)
+        self.treemodel = lightgbm.LGBMClassifier(
+            random_state=self.random_state.randint(10000), n_jobs=N_JOBS, **PARAMS
+        )
+        self.model = fs.RFECV(self.treemodel, cv=cv,)
 
     def fit(self, X, Y):
         self.model.fit(X, Y)
-        logging.info(self.score(X,Y))
+        logging.info(self.score(X, Y))
         return self
 
     def support(self):
         return self.model.support_
-        
+
     def score(self, X, y):
         return self.model.score(X, y)
 
     def predict(self, X):
         return self.model.predict(X)
+
 
 class AllFeatures(FSmodel):
     def __init__(self, random_state=None):
@@ -175,4 +188,3 @@ class AllFeatures(FSmodel):
 
     def score(self, X, y):
         return 0
-

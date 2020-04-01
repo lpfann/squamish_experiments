@@ -4,9 +4,10 @@
 import pathlib
 
 from sklearn.utils import check_random_state
+import os
 
-PATH = pathlib.Path("./output/importance_plots")
-
+PATH = pathlib.Path("./output/figures/importance_plots")
+os.makedirs(PATH, exist_ok=True)
 import lightgbm
 import boruta
 import numpy as np
@@ -18,10 +19,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pgf import FigureCanvasPgf
+
 matplotlib.backend_bases.register_backend("pdf", FigureCanvasPgf)
 matplotlib.rcParams["pgf.rcfonts"] = False
 # Load style file
 plt.style.use("PaperDoubleFig.mplstyle")
+
 
 def get_fs(estimator):
     fset = fs.SelectFromModel(
@@ -39,8 +42,6 @@ def train_and_get_imps(X, y, random_state, params=None):
     rf.fit(X, y)
 
     return rf.feature_importances_
-
-
 
 
 def plot_imp_list(imp_list, line=True, color=None):
@@ -67,7 +68,9 @@ def get_relev_class_RFE(X, y, random_state=None, params=None):
 from arfs_gen import genClassificationData
 
 
-def data(informative=5, redundant=10, d=17, n=300, state= np.random.RandomState(seed=1231241)):
+def data(
+    informative=5, redundant=10, d=17, n=300, state=np.random.RandomState(seed=1231241)
+):
 
     X, y = genClassificationData(
         n_features=d,
@@ -80,7 +83,7 @@ def data(informative=5, redundant=10, d=17, n=300, state= np.random.RandomState(
     return X, y
 
 
-def benchmark(best_params_rf, X, y, random_state, prefix="" ):
+def benchmark(best_params_rf, X, y, random_state, prefix=""):
 
     imp_list = [
         train_and_get_imps(
@@ -104,7 +107,7 @@ def benchmark(best_params_rf, X, y, random_state, prefix="" ):
 
 
 def borutabench(best_params_rf, X, y, random_state, prefix=""):
-    bor = boruta.BorutaPy(model(params=best_params_rf,random_state=random_state))
+    bor = boruta.BorutaPy(model(params=best_params_rf, random_state=random_state))
     bor.fit(X, y)
     plot_class_list([bor.support_])
     plt.title("Frequency of inclusion in AllRel Set (Boruta)")
@@ -127,7 +130,7 @@ def bench_and_plot(random_state):
     }
     X, y = data()
     best_params_rf = ParameterGrid(best_params_rf)[0]
-    benchmark(best_params_rf, X, y,  random_state,prefix="1ff")
+    benchmark(best_params_rf, X, y, random_state, prefix="1ff")
     borutabench(best_params_rf, X, y, random_state, prefix="1ff")
 
     # # ## 0.5 Feature Fraction
@@ -158,8 +161,9 @@ def bench_and_plot(random_state):
     X, y = data()
     best_params_rf = ParameterGrid(best_params_rf)[0]
     name = "01ff"
-    benchmark(best_params_rf, X, y,  random_state,prefix=name)
+    benchmark(best_params_rf, X, y, random_state, prefix=name)
     borutabench(best_params_rf, X, y, random_state, prefix=name)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     bench_and_plot(1337)

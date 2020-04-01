@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import argparse
 import sys
-
+import os
 from numpy.random import RandomState
 from sklearn.metrics import precision_score, recall_score, f1_score
 
@@ -15,36 +15,42 @@ import seaborn as sns
 from matplotlib.backends.backend_pgf import FigureCanvasPgf
 from sklearn.utils import check_random_state
 
+import pathlib
+RES_PATH = pathlib.Path(__file__).parent / ("./results/")
+OUTPUT_PATH = pathlib.Path(__file__).parent / ("../output/tables/toy_benchmarks/")
+RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
 
-def load_file(name):
-    with open("./results/{}".format(name), "rb") as f:
+import sys
+sys.path.append("../")
+from utils import print_df_astable
+
+def load_file(path):
+    with open(path, "rb") as f:
         stability_res = pickle.load(f)
     return stability_res
 
-def print_df_astable(df, filename=None):
-    output = df.to_latex(multicolumn=False, bold_rows=True)
-    if filename is not None:
-        with open("../output/tables/{}.tex".format(filename), "w") as f:
-            f.write(output)
+
+def _print_df_astable(df, filename=None):
+    output = print_df_astable(df, filename, folder="toy_benchmarks")
     return output
 
 
-def get_sim_param_table(toy_set_params, sim_set_names):
-    sim_params = (
-        pd.DataFrame.from_dict(toy_set_params)
-        .T.rename(index=sim_set_names)
-    )
+def get_sim_param_table(toy_set_params):
+    
+    sim_params = pd.DataFrame.from_dict(toy_set_params).T
     sim_params.index.name = "Set"
     return sim_params
 
+
 def get_truth(params):
-    strong=params["strong"]
-    weak=params["weak"]
-    irrel=params["irr"]
+    strong = params["strong"]
+    weak = params["weak"]
+    irrel = params["irr"]
     truth = [True] * (strong + weak) + [False] * irrel
     return truth
 
-def get_sim_accuracy(stability_res, sim_set_names):
+
+def get_sim_accuracy(stability_res):
     toy_accuracy = (
         pd.DataFrame(stability_res)
         .applymap(lambda r: r["train_scores"])
@@ -56,11 +62,11 @@ def get_sim_accuracy(stability_res, sim_set_names):
         toy_accuracy.groupby(level=[0, 1])
         .mean()
         .unstack()
-        .rename(index=sim_set_names)
         .sort_index()
         .round(decimals=2)
     )
     return accuracy_on_sims
+
 
 def get_sim_scores(stability_res, toy_set_params):
 
@@ -68,14 +74,20 @@ def get_sim_scores(stability_res, toy_set_params):
         :, stability_res.columns.get_level_values(0).str.contains("Set")
     ]
     print(toyframe)
+
     def get_score_of_series(series, scorefnc):
         setname = series.name[0]
 
         def get_score(result):
             featset = result["features"]
             if 2 in featset:
-                featset = np.array(featset>0).astype(int)
-            truth_set = get_truth(toy_set_params[setname])
+                featset = np.array(featset > 0).astype(int)
+            try:
+                # Try old naming of Sets withhout whitespace after "Set" (for  e.g. Set1)
+                truth_set = get_truth(toy_set_params[setname])
+            except KeyError: # Error with new format e.g. "Set 1"
+                newkey = setname[:3]+" "+setname[-1]
+                truth_set = get_truth(toy_set_params[newkey])
             return scorefnc(truth_set, featset)
 
         prec_vec = map(get_score, series)
@@ -107,7 +119,7 @@ def get_sim_scores(stability_res, toy_set_params):
     )
     toy_f1["type"] = "f1"
 
-    #toy_scores = pd.concat([toy_precision, toy_recall, toy_f1])
+    # toy_scores = pd.concat([toy_precision, toy_recall, toy_f1])
     toy_scores = toy_f1
 
     # toy_f1.groupby(["model", "data"]).mean().unstack()
@@ -118,11 +130,12 @@ def get_sim_scores(stability_res, toy_set_params):
     # grouped_toy_scores = grouped_toy_scores.unstack("data")
 
     renamed_toy_scores = (
-        grouped_toy_scores.round(decimals=2).unstack(1).rename(columns=sim_set_names)
+        grouped_toy_scores.round(decimals=2).unstack(1)
     )
     renamed_toy_scores = renamed_toy_scores.sort_index(axis=1).T
 
     return renamed_toy_scores
+
 
 def get_runtime_table(res_dict):
     runtime_frame = pd.DataFrame(res_dict).applymap(lambda r: r["runtime"])
@@ -135,26 +148,37 @@ def get_runtime_table(res_dict):
     runtime_frame = (
         runtime_frame.groupby(["model", "data"]).mean().unstack().astype(int)
     )
-    runtime_frame = runtime_frame.rename(columns=sim_set_names).sort_index(axis=1).T
+    runtime_frame = runtime_frame.sort_index(axis=1).T
     return runtime_frame
 
 
 def run_new(n_bs=3, seed=1337):
     seed = check_random_state(seed)
     res = experiment_pipeline.main_exp(
-        n_bootstraps=n_bs,
-        SEED=seed,
-        filename="paper_experiment",
-        toy=True,
+        n_bootstraps=n_bs, SEED=seed, filename="paper_experiment", toy=True,
     )
     return res
 
+def rename_old_namingscheme(stability_res):
+    #If no whitespace between Set and Number rename keys to match new format WITH whitespace
+    keys = stability_res.keys()
+    probe = list(keys)[0]
+    newstab = {}
+    if " " not in probe[0]:
+        for k in stability_res.keys():
+            dataset, model = k
+            newkey = dataset[:3]+" "+dataset[-1]
+            newstab[(newkey, model)] = stability_res[k]
+    return newstab
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     matplotlib.backend_bases.register_backend("pdf", FigureCanvasPgf)
     matplotlib.rcParams["pgf.rcfonts"] = False
     # Load style file
-    plt.style.use("../PaperDoubleFig.mplstyle")
+    style_file = (
+        pathlib.Path(__file__).parent.parent.resolve() / "PaperDoubleFig.mplstyle"
+    )
+    plt.style.use(str(style_file))
 
     toy_set_params = experiment_pipeline.toy_set_params
 
@@ -170,44 +194,37 @@ if __name__ == '__main__':
     else:
         if args.resfile is not None:
             # Load existing result
-            stability_res = load_file(args.resfile)
+            path = pathlib.Path(args.resfile)
+            print(f"Load from {path}")
+            stability_res = load_file(path)
         else:
             stability_res = run_new(n_bs=args.iters, seed=args.seed)
+    
 
-    sim_set_names = {
-        "Set1": "Set 1",
-        "Set2": "Set 2",
-        "Set3": "Set 3",
-        "Set4": "Set 4",
-        "Set5": "Set 5",
-        "Set6": "Set 6",
-        "Set7": "Set 7",
-        "Set8": "Set 8",
-        "Set9": "Set 9"
-    }
+    stability_res = rename_old_namingscheme(stability_res)
 
     # Convert result dictionaries to dataframe
     index = pd.MultiIndex.from_tuples(stability_res.keys())
+
     list_df = pd.DataFrame(
         [pd.Series(value) for value in stability_res.values()], index=index
     )
     stability_res = list_df.dropna().T  # Drop invalid results
 
-
-    sim_params = get_sim_param_table(toy_set_params,sim_set_names)
-    print_df_astable(sim_params, "sim_params")
+    sim_params = get_sim_param_table(toy_set_params)
+    _print_df_astable(sim_params, "sim_params")
     print("#################### Simulation parameters")
     print(sim_params)
 
-    sim_scores = get_sim_scores(stability_res,toy_set_params)
+    sim_scores = get_sim_scores(stability_res, toy_set_params)
     print("#################### Simulation Scores")
-    print(print_df_astable(sim_scores, "sim_scores"))
+    print(_print_df_astable(sim_scores, "sim_scores"))
 
-    sim_accuracy = get_sim_accuracy(stability_res,sim_set_names)
+    sim_accuracy = get_sim_accuracy(stability_res)
     print("#################### Training accuracy")
-    print(print_df_astable(sim_accuracy, "sim_accuracy"))
+    print(_print_df_astable(sim_accuracy, "sim_accuracy"))
 
     runtime = get_runtime_table(stability_res)
-    runtime = print_df_astable(runtime, "runtime")
+    runtime = _print_df_astable(runtime, "runtime")
     print("#################### Runtime of methods")
     print(runtime)
