@@ -10,7 +10,7 @@ squamish = {path = "../../squamish"}
 #squamish =  {git = "https://github.com/lpfann/squamish"}
 jupyterlab = "^1.2.5"
 jupyter = "^1.0.0"
-arfs-gen = "^1.0.3"
+arfs-gen = "^1.1"
 dill = "^0.3.1"
 numpy = "^1.17.3"
 imbalanced-learn = ">=0.4.2"
