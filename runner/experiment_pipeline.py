@@ -117,13 +117,13 @@ def get_bootstrapped_datasets(datasets, n_bootstraps):
     return datasets
 
 
-def get_models(seed):
+def get_models(seed,n_jobs=1):
     # FRI
-    fri_model_exc = FRI(random_state=seed)
+    fri_model_exc = FRI(random_state=seed, n_jobs=n_jobs)
     # ElasticNet
-    eelm = LM(random_state=seed)
-    sq = SQ(random_state=seed)
-    rf = RF(random_state=seed)
+    eelm = LM(random_state=seed, n_jobs=n_jobs)
+    sq = SQ(random_state=seed, n_jobs=n_jobs)
+    rf = RF(random_state=seed, n_jobs=n_jobs)
 
     models = {
         "FRI": fri_model_exc,

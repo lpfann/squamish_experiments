@@ -31,6 +31,7 @@ import fsmodel, experiment_pipeline
 generate_func = arfs_gen.genClassificationData
 default_params = {
     "n_samples": 1000,
+    "linear":False
 }
 datasets = {
     "NL 1": {"n_features": 20, "n_strel": 10, "n_redundant": 0,},
@@ -73,7 +74,7 @@ class Experiment:
 
 def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 10):
 
-    models = experiment_pipeline.get_models(state)
+    models = experiment_pipeline.get_models(state,n_jobs=n_jobs)
 
     default_params["random_state"] = state
     res_list = []
@@ -100,7 +101,7 @@ def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 
     return exp
 
 
-def run(recompute=True):
+def run(recompute=True, n_jobs=-1):
     if not recompute:
         try:
             exp = pd.read_pickle(TMP / (EXP_FILE + ".pickle"))
@@ -141,9 +142,10 @@ def analyze(exp=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--recompute", type=bool, default=False)
+    parser.add_argument("--jobs", type=int, default=-1)
 
     args = parser.parse_args()
 
-    exp = run(args.recompute)
+    exp = run(args.recompute, args.jobs)
     table, overallmean = analyze(exp)
     

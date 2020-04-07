@@ -24,9 +24,6 @@ import squamish
 import logging
 
 
-N_JOBS = 1
-
-
 class FSmodel(object):
     """
     Abstract class for all models which are used for feature selection
@@ -34,7 +31,8 @@ class FSmodel(object):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, random_state=None):
+    def __init__(self, random_state=None, n_jobs=1):
+        self.n_jobs = n_jobs
         self.random_state = check_random_state(random_state)
         self.support_ = None
         self.model = None
@@ -57,8 +55,8 @@ class FSmodel(object):
 
 
 class LM(FSmodel):
-    def __init__(self, random_state=None):
-        super().__init__(random_state=random_state)
+    def __init__(self, random_state=None, n_jobs=1):
+        super().__init__(random_state=random_state, n_jobs= n_jobs)
 
     def fit(self, X, Y):
         model = SGDClassifier(max_iter=100, tol=1e-3, random_state=self.random_state)
@@ -68,7 +66,7 @@ class LM(FSmodel):
         }
         cv = 3
         gridsearch = GridSearchCV(
-            model, tuned_parameters, cv=cv, verbose=0, error_score=np.nan, n_jobs=N_JOBS
+            model, tuned_parameters, cv=cv, verbose=0, error_score=np.nan, n_jobs=self.n_jobs
         )
 
         with warnings.catch_warnings():
@@ -76,7 +74,7 @@ class LM(FSmodel):
             gridsearch.fit(X, Y)
         self.model = gridsearch.best_estimator_
         self.selector = RFECV(
-            estimator=self.model, cv=5, min_features_to_select=2, n_jobs=N_JOBS
+            estimator=self.model, cv=5, min_features_to_select=2, n_jobs=self.n_jobs
         )
         self.selector.fit(X, Y)
         self.support_ = self.selector.get_support()
@@ -93,15 +91,15 @@ class LM(FSmodel):
 
 
 class FRI(FSmodel):
-    def __init__(self, random_state=None):
-        super().__init__(random_state=random_state)
+    def __init__(self, random_state=None, n_jobs=1):
+        super().__init__(random_state=random_state, n_jobs=n_jobs)
         self.model = fri.FRI(
             fri.ProblemName.CLASSIFICATION,
             random_state=self.random_state,
             w_l1_slack=0.1,
             loss_slack=0.1,
             n_probe_features=50,
-            n_jobs=N_JOBS,
+            n_jobs=self.n_jobs,
             n_param_search=50,
         )
 
@@ -121,10 +119,10 @@ class FRI(FSmodel):
 
 
 class SQ(FSmodel):
-    def __init__(self, random_state=None):
-        super().__init__(random_state=random_state)
+    def __init__(self, random_state=None, n_jobs=1):
+        super().__init__(random_state=random_state, n_jobs=n_jobs)
 
-        self.model = squamish.Main(random_state=self.random_state, n_jobs=N_JOBS)
+        self.model = squamish.Main(random_state=self.random_state, n_jobs=self.n_jobs)
 
     def fit(self, X, Y):
 
@@ -144,8 +142,8 @@ class SQ(FSmodel):
 
 
 class RF(FSmodel):
-    def __init__(self, random_state=None, cv=5):
-        super().__init__(random_state=random_state)
+    def __init__(self, random_state=None, n_jobs=1, cv=5):
+        super().__init__(random_state=random_state, n_jobs=n_jobs)
         PARAMS = {
             "num_leaves": 32,
             "max_depth": 5,
@@ -156,9 +154,9 @@ class RF(FSmodel):
             "verbose": -1,
         }
         self.treemodel = lightgbm.LGBMClassifier(
-            random_state=self.random_state.randint(10000), n_jobs=N_JOBS, **PARAMS
+            random_state=self.random_state.randint(10000), n_jobs=self.n_jobs, **PARAMS
         )
-        self.model = fs.RFECV(self.treemodel, cv=cv,)
+        self.model = fs.RFECV(self.treemodel, cv=cv)
 
     def fit(self, X, Y):
         self.model.fit(X, Y)
@@ -176,7 +174,7 @@ class RF(FSmodel):
 
 
 class AllFeatures(FSmodel):
-    def __init__(self, random_state=None):
+    def __init__(self, random_state=None, n_jobs=1):
         super().__init__()
 
     def fit(self, X, Y):
