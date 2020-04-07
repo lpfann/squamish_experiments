@@ -2,8 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sklearn as sk
 import sklearn.datasets as data
+import arfs_gen
 import pandas as pd
-
+import argparse
 import squamish.main
 import fri
 
@@ -27,22 +28,15 @@ sys.path.append("./runner/")
 import fsmodel, experiment_pipeline
 
 # Data Generation
-generate_func = data.make_classification
+generate_func = arfs_gen.genClassificationData
 default_params = {
     "n_samples": 1000,
-    "n_classes": 2,
-    "n_clusters_per_class": 2,
-    "class_sep": 0.5,
-    "hypercube": True,
-    "shift": 0.0,
-    "scale": 1.0,
-    "shuffle": False
 }
 datasets = {
-    "NL 1": {"n_features": 20, "n_informative": 10, "n_redundant": 0,},
-    "NL 2": {"n_features": 20, "n_informative": 5, "n_redundant": 5,},
-    "NL 3": {"n_features": 20, "n_informative": 5, "n_repeated": 10,},
-    "NL 4": {"n_features": 100, "n_informative": 20, "n_redundant": 20},
+    "NL 1": {"n_features": 20, "n_strel": 10, "n_redundant": 0,},
+    "NL 2": {"n_features": 20, "n_strel": 0, "n_redundant": 10,},
+    "NL 3": {"n_features": 20, "n_strel": 5, "n_repeated": 5,},
+    "NL 4": {"n_features": 100, "n_strel": 20, "n_redundant": 20},
 }
 
 @dataclasses.dataclass
@@ -77,25 +71,8 @@ class Experiment:
         self.results.append(result)
 
 
-def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 2):
+def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 10):
 
-    # Models
-    # f = fri.FRI(
-    #     fri.ProblemName.CLASSIFICATION,
-    #     n_probe_features=50,
-    #     verbose=False,
-    #     random_state=state,
-    #     n_jobs=n_jobs,
-    # )
-    # sq = squamish.main.Main(random_state=state, n_jobs=n_jobs, debug=False)
-    # eelm = fsmodel.LM(random_state=state)
-    # rf = fsmodel.RF(random_state=state)
-    # models = {
-    #     "FRI": f,
-    #     "Sq": sq,
-    #     "ElasticNet": eelm,
-    #     "RF": rf,
-    # }
     models = experiment_pipeline.get_models(state)
 
     default_params["random_state"] = state
@@ -123,8 +100,8 @@ def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 
     return exp
 
 
-def run(cached=True):
-    if cached:
+def run(recompute=True):
+    if not recompute:
         try:
             exp = pd.read_pickle(TMP / (EXP_FILE + ".pickle"))
             return exp
@@ -162,6 +139,11 @@ def analyze(exp=None):
 
 
 if __name__ == "__main__":
-    exp = run()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--recompute", type=bool, default=False)
+
+    args = parser.parse_args()
+
+    exp = run(args.recompute)
     table, overallmean = analyze(exp)
     
