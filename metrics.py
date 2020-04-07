@@ -10,7 +10,7 @@ def get_truth(params):
 
 def get_truth_new(params):
     try:
-        strong = params["n_informative"]
+        strong = params["n_strel"]
     except KeyError:
         strong = 0
     try:

@@ -1,31 +1,31 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import sklearn as sk
-import sklearn.datasets as data
-import arfs_gen
-import pandas as pd
 import argparse
-import squamish.main
-import fri
-
-import pickle
 import dataclasses
+import pathlib
+import pickle
+import sys
 from typing import List
 
-import pathlib
+import arfs_gen
+import fri
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import sklearn as sk
+import sklearn.datasets as data
+sys.path.append("./runner/")
+import experiment_pipeline
+import fsmodel
+import metrics
+import squamish.main
+from utils import print_df_astable
 
 PATH = pathlib.Path(__file__).parent
 TMP = PATH / ("./tmp")
 EXP_FILE = "NL_experiment_results"
 
-import metrics
 
-from utils import print_df_astable
 
-import sys
 
-sys.path.append("./runner/")
-import fsmodel, experiment_pipeline
 
 # Data Generation
 generate_func = arfs_gen.genClassificationData
@@ -35,9 +35,9 @@ default_params = {
 }
 datasets = {
     "NL 1": {"n_features": 20, "n_strel": 10, "n_redundant": 0,},
-    "NL 2": {"n_features": 20, "n_strel": 0, "n_redundant": 10,},
-    "NL 3": {"n_features": 20, "n_strel": 5, "n_repeated": 5,},
-    "NL 4": {"n_features": 100, "n_strel": 20, "n_redundant": 20},
+    #"NL 2": {"n_features": 20, "n_strel": 0, "n_redundant": 10,},
+    #"NL 3": {"n_features": 20, "n_strel": 5, "n_redundant": 5,},
+    #"NL 4": {"n_features": 100, "n_strel": 20, "n_redundant": 20},
 }
 
 @dataclasses.dataclass
@@ -72,7 +72,7 @@ class Experiment:
         self.results.append(result)
 
 
-def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 10):
+def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 2):
 
     models = experiment_pipeline.get_models(state,n_jobs=n_jobs)
 
@@ -148,4 +148,3 @@ if __name__ == "__main__":
 
     exp = run(args.recompute, args.jobs)
     table, overallmean = analyze(exp)
-    
