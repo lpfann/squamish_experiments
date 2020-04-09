@@ -23,6 +23,7 @@ fri = "^8.0"
 dask = "^2.6.0"
 dask_jobqueue = "^0.7.0"
 networkx = "^2.4"
+click = "^7.1.1"
 
 [tool.poetry.dev-dependencies]
 

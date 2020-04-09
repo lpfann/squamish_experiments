@@ -135,7 +135,8 @@ class SQ(FSmodel):
         return self.model.relevance_classes_
 
     def score(self, X, y):
-        return self.model.score(X, y)
+        self.model.rfmodel.fit(X,y)
+        return self.model.rfmodel.score(X, y)
 
     def predict(self, X):
         return self.model.predict(X)
@@ -151,6 +152,10 @@ class RF(FSmodel):
             "bagging_fraction": 0.632,
             "bagging_freq": 1,
             # "feature_fraction": 0.8,
+            # Add nulled parameters to surpress warning messages
+            "subsample": None,
+            "subsample_freq": None,
+            "colsample_bytree": None,
             "verbose": -1,
         }
         self.treemodel = lightgbm.LGBMClassifier(

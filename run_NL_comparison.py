@@ -12,13 +12,15 @@ import numpy as np
 import pandas as pd
 import sklearn as sk
 import sklearn.datasets as data
+import sklearn.metrics
+from sklearn.preprocessing import scale
 sys.path.append("./runner/")
 import experiment_pipeline
 import fsmodel
 import metrics
 import squamish.main
 from utils import print_df_astable
-
+import click
 PATH = pathlib.Path(__file__).parent
 TMP = PATH / ("./tmp")
 EXP_FILE = "NL_experiment_results"
@@ -34,10 +36,10 @@ default_params = {
     "linear":False
 }
 datasets = {
-    "NL 1": {"n_features": 20, "n_strel": 10, "n_redundant": 0,},
-    #"NL 2": {"n_features": 20, "n_strel": 0, "n_redundant": 10,},
-    #"NL 3": {"n_features": 20, "n_strel": 5, "n_redundant": 5,},
-    #"NL 4": {"n_features": 100, "n_strel": 20, "n_redundant": 20},
+    "NL 1": {"n_features": 50, "n_strel": 10, "n_redundant": 0,},
+    "NL 2": {"n_features": 50, "n_strel": 0, "n_redundant": 10,},
+    "NL 3": {"n_features": 50, "n_strel": 10, "n_redundant": 10,},
+    "NL 4": {"n_features": 200, "n_strel": 10, "n_redundant": 10},
 }
 
 @dataclasses.dataclass
@@ -48,7 +50,7 @@ class Result:
     precision: float
     recall: float
     f1: float
-    train_score: float
+    accuracy: float
     params: dict
 
 
@@ -79,19 +81,30 @@ def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 
     default_params["random_state"] = state
     res_list = []
     for d_name, d_param in datasets.items():
+        print("*"*20)
+        print(d_name)
         # Generate data with parameters
         cur_param = dict(default_params, **d_param)
         X, y = generate_func(**cur_param)
+        X = scale(X)
+
         # Run models
         for m_name, model in models.items():
+            print("*"*20)
+            print(m_name)
             for r in range(repeats):
+                print("*"*10)
+                print(r)
                 model.fit(X, y)
-                train_score = model.score(X, y)
+                #train_score = model.score(X, y)
+                prediction = model.predict(X)
+                # Cast -1,1 encoding to 0,1 encoding of classes (in case of fri)
+                accuracy = model.score(X,y)
                 features = model.support()
                 truth = metrics.get_truth_new(cur_param)
                 scores = metrics.get_scores_for_set(truth, features)
                 result = Result(
-                    d_name, m_name, features, *scores, train_score, cur_param
+                    d_name, m_name, features, *scores, accuracy, cur_param
                 )
                 res_list.append(vars(result))
     exp = pd.DataFrame(res_list)
@@ -101,17 +114,6 @@ def run_experiment(state = np.random.RandomState(123), n_jobs = -1,   repeats = 
     return exp
 
 
-def run(recompute=True, n_jobs=-1):
-    if not recompute:
-        try:
-            exp = pd.read_pickle(TMP / (EXP_FILE + ".pickle"))
-            return exp
-        except NameError:
-            pass
-        except FileNotFoundError:
-            pass
-    exp = run_experiment()
-    return exp
 
 
 def analyze(exp=None):
@@ -138,13 +140,23 @@ def analyze(exp=None):
     print_df_astable(preset.T, "presets", folder="NL_toy_benchmarks")
     return table, overallmean
 
+@click.command()
+@click.option("--recompute", default=False, is_flag=True)
+@click.option("--n_jobs", default=-1, show_default=True)
+@click.option("--seed", default=123, show_default=True)
+@click.option("--repeats", default=2, show_default=True)
+def run(recompute, n_jobs, seed, repeats):
+    if not recompute:
+        try:
+            exp = pd.read_pickle(TMP / (EXP_FILE + ".pickle"))
+            return exp
+        except NameError:
+            pass
+        except FileNotFoundError:
+            pass
+    exp = run_experiment(state = np.random.RandomState(seed), n_jobs = n_jobs,   repeats = repeats)
+    table, overallmean = analyze(exp)
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--recompute", type=bool, default=False)
-    parser.add_argument("--jobs", type=int, default=-1)
-
-    args = parser.parse_args()
-
-    exp = run(args.recompute, args.jobs)
-    table, overallmean = analyze(exp)
+    run()
