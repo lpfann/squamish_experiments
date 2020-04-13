@@ -5,7 +5,7 @@ import os
 OUTPUT_PATH = pathlib.Path(__file__).parent / ("./output/tables/")
 
 
-def print_df_astable(df, filename, output_root=OUTPUT_PATH, folder="", decimals=2):
+def print_df_astable(df, filename, output_root=OUTPUT_PATH, folder="", decimals=2,na_rep="NaN"):
     """ Output Dataframe as Latex Table in .tex file.
     
     Arguments:
@@ -20,7 +20,7 @@ def print_df_astable(df, filename, output_root=OUTPUT_PATH, folder="", decimals=
         {str} -- Latex Table Code
     """
     print("Saving table as Latex output")
-    output = df.to_latex(multicolumn=True,multirow=True, bold_rows=True, float_format=f"%.{decimals}f")
+    output = df.to_latex(multicolumn=True,multirow=True, bold_rows=True, float_format=f"%.{decimals}f",na_rep=na_rep)
     print(output)
     output_path = output_root / folder
     os.makedirs(output_path, exist_ok=True)

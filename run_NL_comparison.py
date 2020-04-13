@@ -150,7 +150,7 @@ def get_Accuracy_per_Relevance_Class(table):
 
     mean_model = mean_datamodel.groupby(["model"]).mean()
 
-    return combined, mean_model
+    return mean_datamodel, mean_model
 
 def analyze(exp=None):
 
@@ -184,7 +184,7 @@ def analyze(exp=None):
     # Analyse Feature Classes Accuracy
     #
     fclasses_combined, fclasses_meanmodel = get_Accuracy_per_Relevance_Class(exp)
-    print_df_astable(fclasses_combined, "accuracy_per_fclass", folder="NL_toy_benchmarks")
+    print_df_astable(fclasses_combined, "accuracy_per_fclass", folder="NL_toy_benchmarks",na_rep="-")
     print_df_astable(fclasses_meanmodel, "accuracy_per_fclass_mean", folder="NL_toy_benchmarks")
 
 
