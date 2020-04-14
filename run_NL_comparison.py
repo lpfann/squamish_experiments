@@ -194,6 +194,7 @@ def analyze(exp=None):
 @click.option("--seed", default=123, show_default=True)
 @click.option("--repeats", default=2, show_default=True)
 def run(recompute, n_jobs, seed, repeats):
+    exp = None
     if not recompute:
         try:
             exp = pd.read_pickle(TMP / (EXP_FILE + ".pickle"))
