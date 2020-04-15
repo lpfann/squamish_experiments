@@ -49,6 +49,9 @@ WORKDIR /exp
 COPY . .
 
 RUN chmod +x ./docker_entrypoint.sh
-ENTRYPOINT ./docker_entrypoint.sh make
+ENTRYPOINT ["./docker_entrypoint.sh"]
 
-CMD ["all"]
+CMD ["make","all"]
+
+VOLUME [ "/exp/tmp" ]
+VOLUME [ "/exp/output" ]
