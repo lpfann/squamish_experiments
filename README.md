@@ -18,11 +18,17 @@ Preprints can be found at https://pub.uni-bielefeld.de/record/2942271 or https:/
 # Replicate Experiments
 To replicate the experimental results of the paper (figure and tables) we provide a docker image and several scripts to produce a (hopefully) identical output.
 
-Build the image yourself or pull the image (if available) and then run 
+Build the image with
+```sh
+docker build -t squamish_experiments .
+```
+and then run
 ```sh
 docker run -v ./tmp:/exp/tmp:Z -v ./output:/exp/output:Z -it squamish_experiments make 
 ```
-After the experimets are done (can take several hours) the output should end up in the `./output` folder.
+which calls make inside the container to execute all experiments in the `Makefile`.
+
+After the experiments are done (can take several hours) the output should end up in the `./output` folder.
 
 It's possible to change the following parameters as environment variables in the docker command via the `-e` option:
 
