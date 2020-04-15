@@ -70,4 +70,3 @@ sns.barplot(x=np.arange(len(imps)), y=imps, hue=relevant)
 plt.axhline(shadw_bounds[1])
 plt.title("Feature selection with statistical based threshold")
 plt.savefig(PATH / "selection_with_statmethod.pdf")
-

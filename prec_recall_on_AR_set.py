@@ -38,7 +38,6 @@ def get_truthAR(params):
     return truth
 
 
-
 # In[98]:
 
 
@@ -145,7 +144,6 @@ strongly_recall = convert_frame(
 strongly = pd.concat([strongly_precision, strongly_recall], axis=1).unstack(level=0).T
 
 
-
 # In[109]:
 
 
@@ -158,7 +156,6 @@ strongly.groupby(level=0).mean()
 combined = pd.concat([weakly, strongly], axis=1, keys=["Weakly", "Strongly"]).round(
     decimals=2
 )
-
 
 
 # In[116]:
