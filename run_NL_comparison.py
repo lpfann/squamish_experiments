@@ -16,7 +16,7 @@ from utils import print_df_astable
 import click
 
 PATH = pathlib.Path(__file__).parent
-TMP = PATH / ("./tmp")
+TMP = PATH / ("./tmp/nonlinear")
 EXP_FILE = "NL_experiment_results"
 
 

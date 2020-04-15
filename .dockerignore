@@ -1,0 +1,10 @@
+tmp
+output
+notes
+.ipynb_checkpoints
+.idea
+__pycache__
+.dockerignore
+.gitignore
+.python-version
+debug.py

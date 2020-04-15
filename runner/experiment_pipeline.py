@@ -17,7 +17,7 @@ logger = logging.getLogger("Experiment")
 import pathlib
 
 RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
-RESULTS_PATH = RELATIVE_PATH / "./results/"
+RESULTS_PATH = RELATIVE_PATH / "../tmp/linear/"
 
 ## functions which are run in the worker threads for parallel computation
 def worker_stability(job: Job):

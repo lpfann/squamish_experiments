@@ -14,7 +14,7 @@ from sklearn.utils import check_random_state
 
 import pathlib
 
-RES_PATH = pathlib.Path(__file__).parent / ("./results/")
+RES_PATH = pathlib.Path(__file__).parent / ("../tmp/linear/")
 OUTPUT_PATH = pathlib.Path(__file__).parent / ("../output/tables/toy_benchmarks/")
 RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
 
