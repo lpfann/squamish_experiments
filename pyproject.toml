@@ -17,8 +17,6 @@ feather-format = "^0.4.0"
 seaborn = "^0.9.0"
 joblib = "^0.14.0"
 fri = "^8.0"
-dask = "^2.6.0"
-dask_jobqueue = "^0.7.0"
 click = "^7.1.1"
 
 [tool.poetry.dev-dependencies]

@@ -3,9 +3,6 @@ from collections import defaultdict
 import dill as pickle
 import joblib
 from numpy.random import RandomState
-from dask_jobqueue import SGECluster
-from dask.distributed import Client
-import dask
 from job import Job
 
 import import_data
@@ -173,10 +170,9 @@ def main_exp(
     tempres=None,
     selectmodels=None,
     filename="test",
-    threads=8,
+    threads=1,
     toy=True,
     noise=0,
-    distributed=False,
 ):
     """Main function which gets data and models and starts experiments.
     We use a parallel worker model where individual models/set combinations are represented in Jobs which are run in worker threads.
@@ -206,17 +202,7 @@ def main_exp(
         models = {k: v for k, v in models.items() if k in selectmodels}
     logger.info(f"models:{models}")
 
-    # Cluster
-    if not distributed:
-        # client = Client(processes=False)
-        parallel = None
-    else:
-        cluster = SGECluster(cores=1)
-        cluster.start_workers(threads)
-        client = Client(cluster)
-
-        with joblib.parallel_backend("dask", wait_for_workers_timeout=60):
-            parallel = joblib.Parallel(verbose=1)
+    parallel = joblib.Parallel(n_jobs=threads)
 
     result = run_stability_experiment(models, datasets, parallel=parallel)
 
@@ -237,7 +223,6 @@ if __name__ == "__main__":
     parser.add_argument("--models", nargs="*", default=None)
     parser.add_argument("--filename", type=str, default=None)
     parser.add_argument("--toy", type=bool, default=True)
-    parser.add_argument("--distributed", type=bool, default=False)
     parser.add_argument("--debug", type=bool, default=False)
 
     args = parser.parse_args()
@@ -252,5 +237,4 @@ if __name__ == "__main__":
         threads=args.threads,
         toy=args.toy,
         noise=args.noise,
-        distributed=args.distributed,
     )
