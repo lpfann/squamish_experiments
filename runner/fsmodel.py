@@ -1,19 +1,13 @@
 import abc
-import sys
 import warnings
 
 import numpy as np
-from sklearn.feature_selection import RFECV, SelectFromModel
+from sklearn.feature_selection import RFECV
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import check_random_state
 from sklearn.linear_model import (
-    Lasso,
-    Ridge,
-    ElasticNet,
-    LogisticRegression,
     SGDClassifier,
 )
-from sklearn.model_selection import cross_val_score
 
 import sklearn.feature_selection as fs
 import lightgbm

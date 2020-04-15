@@ -8,7 +8,6 @@ from dask.distributed import Client
 import dask
 from job import Job
 
-# import fsmodel
 import import_data
 import argparse
 from fsmodel import RF, SQ, FRI, LM
@@ -19,6 +18,7 @@ import pathlib
 
 RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
 RESULTS_PATH = RELATIVE_PATH / "./results/"
+
 ## functions which are run in the worker threads for parallel computation
 def worker_stability(job: Job):
     return job.run_one_bootstrap()
