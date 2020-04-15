@@ -135,34 +135,6 @@ def get_models(seed, n_jobs=1):
     return models
 
 
-def get_datasets(seed):
-    logging.debug("FIBROSIS")
-    set_fibrosis = import_data.import_Fibrosis(seed)
-    logging.debug("FLIP")
-    set_flip = import_data.import_FLIP(seed)
-    logging.debug("T21")
-    set_t21 = import_data.import_T21(seed)
-    logging.debug("SPECTF")
-    set_spectf = import_data.import_SPECTF(seed)
-    logging.debug("WBC")
-    set_WBC = import_data.import_wbc(seed)
-    logging.debug("colposcopy")
-    set_col = import_data.import_colposcopy(seed)
-    logging.debug("cervical")
-    set_cervical = import_data.import_cervical(seed)
-
-    datasets = {
-        # "fibrosis": set_fibrosis,
-        # "colposcopy": set_col,
-        "cervical": set_cervical,
-        "flip": set_flip,
-        "t21": set_t21,
-        "spectf": set_spectf,
-        "wbc": set_WBC,
-    }
-    return datasets
-
-
 toy_set_params = {
     "Set 1": {"n": 150, "strong": 6, "weak": 0, "irr": 6},
     "Set 2": {"n": 150, "strong": 0, "weak": 6, "irr": 6},
@@ -224,11 +196,7 @@ def main_exp(
     if toy:
         datasets = get_toy_datasets(SEED, noise=noise)
     else:
-        datasets = get_datasets(SEED)
-    # datasets.update(datasets_toy)
-
-    # if toy:
-    #    datasets = get_bootstrapped_datasets(datasets, n_bootstraps)
+        raise Exception("Non-Toy data is not included.")
 
     datasets = get_bootstrapped_datasets(datasets, n_bootstraps)
 
@@ -268,7 +236,7 @@ if __name__ == "__main__":
     parser.add_argument("--noise", type=float, default=0)
     parser.add_argument("--models", nargs="*", default=None)
     parser.add_argument("--filename", type=str, default=None)
-    parser.add_argument("--toy", type=bool, default=False)
+    parser.add_argument("--toy", type=bool, default=True)
     parser.add_argument("--distributed", type=bool, default=False)
     parser.add_argument("--debug", type=bool, default=False)
 
