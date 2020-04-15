@@ -2,3 +2,4 @@
 /notes/
 debug.py
 __pycache__
+tmp/*
