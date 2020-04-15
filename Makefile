@@ -10,7 +10,7 @@ all: $(OUTDIR)/tables/toy_benchmarks $(OUTDIR)/tables/prec_recall_arfs $(OUTDIR)
 .PHONY : clean all test
 
 $(LINEAR_RESULT): runner/experiment_pipeline.py
-		python runner/experiment_pipeline.py --iters 25 --filename "$(LINEAR_RESULT_FILE_NAME)"
+		python runner/experiment_pipeline.py --iters 10 --filename "$(LINEAR_RESULT_FILE_NAME)"
 
 $(OUTDIR)/tables/toy_benchmarks : $(LINEAR_RESULT) runner/paper_output.py
 		python runner/paper_output.py --resfile $(LINEAR_RESULT)

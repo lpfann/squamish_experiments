@@ -35,12 +35,20 @@ RUN poetry install --no-dev
 
 FROM python-base as experiments
 
+
 # Copying poetry and venv into image
 COPY --from=builder-base $POETRY_HOME $POETRY_HOME
 COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
 
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        make\
+        libgomp1
+
 WORKDIR /exp
 COPY . .
 
-ENTRYPOINT ./docker_entrypoint.sh
-CMD ["make","all"]
+RUN chmod +x ./docker_entrypoint.sh
+ENTRYPOINT ./docker_entrypoint.sh make
+
+CMD ["all"]
