@@ -13,13 +13,16 @@ from matplotlib.backends.backend_pgf import FigureCanvasPgf
 from sklearn.utils import check_random_state
 
 import pathlib
+
 RES_PATH = pathlib.Path(__file__).parent / ("./results/")
 OUTPUT_PATH = pathlib.Path(__file__).parent / ("../output/tables/toy_benchmarks/")
 RELATIVE_PATH = pathlib.Path(__file__).parent.resolve()
 
 import sys
+
 sys.path.append("../")
 from utils import print_df_astable
+
 
 def load_file(path):
     with open(path, "rb") as f:
@@ -33,7 +36,7 @@ def _print_df_astable(df, filename=None):
 
 
 def get_sim_param_table(toy_set_params):
-    
+
     sim_params = pd.DataFrame.from_dict(toy_set_params).T
     sim_params.index.name = "Set"
     return sim_params
@@ -82,8 +85,8 @@ def get_sim_scores(stability_res, toy_set_params):
             try:
                 # Try old naming of Sets withhout whitespace after "Set" (for  e.g. Set1)
                 truth_set = get_truth(toy_set_params[setname])
-            except KeyError: # Error with new format e.g. "Set 1"
-                newkey = setname[:3]+" "+setname[-1]
+            except KeyError:  # Error with new format e.g. "Set 1"
+                newkey = setname[:3] + " " + setname[-1]
                 truth_set = get_truth(toy_set_params[newkey])
             return scorefnc(truth_set, featset)
 
@@ -126,9 +129,7 @@ def get_sim_scores(stability_res, toy_set_params):
     )
     # grouped_toy_scores = grouped_toy_scores.unstack("data")
 
-    renamed_toy_scores = (
-        grouped_toy_scores.round(decimals=2).unstack(1)
-    )
+    renamed_toy_scores = grouped_toy_scores.round(decimals=2).unstack(1)
     renamed_toy_scores = renamed_toy_scores.sort_index(axis=1).T
 
     return renamed_toy_scores
@@ -156,17 +157,19 @@ def run_new(n_bs=3, seed=1337):
     )
     return res
 
+
 def rename_old_namingscheme(stability_res):
-    #If no whitespace between Set and Number rename keys to match new format WITH whitespace
+    # If no whitespace between Set and Number rename keys to match new format WITH whitespace
     keys = stability_res.keys()
     probe = list(keys)[0]
     newstab = {}
     if " " not in probe[0]:
         for k in stability_res.keys():
             dataset, model = k
-            newkey = dataset[:3]+" "+dataset[-1]
+            newkey = dataset[:3] + " " + dataset[-1]
             newstab[(newkey, model)] = stability_res[k]
     return newstab
+
 
 if __name__ == "__main__":
     matplotlib.backend_bases.register_backend("pdf", FigureCanvasPgf)
@@ -196,7 +199,6 @@ if __name__ == "__main__":
             stability_res = load_file(path)
         else:
             stability_res = run_new(n_bs=args.iters, seed=args.seed)
-    
 
     stability_res = rename_old_namingscheme(stability_res)
 

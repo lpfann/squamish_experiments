@@ -5,9 +5,7 @@ import numpy as np
 from sklearn.feature_selection import RFECV
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import check_random_state
-from sklearn.linear_model import (
-    SGDClassifier,
-)
+from sklearn.linear_model import SGDClassifier
 
 import sklearn.feature_selection as fs
 import lightgbm
@@ -50,7 +48,7 @@ class FSmodel(object):
 
 class LM(FSmodel):
     def __init__(self, random_state=None, n_jobs=1):
-        super().__init__(random_state=random_state, n_jobs= n_jobs)
+        super().__init__(random_state=random_state, n_jobs=n_jobs)
 
     def fit(self, X, Y):
         model = SGDClassifier(max_iter=100, tol=1e-3, random_state=self.random_state)
@@ -60,7 +58,12 @@ class LM(FSmodel):
         }
         cv = 3
         gridsearch = GridSearchCV(
-            model, tuned_parameters, cv=cv, verbose=0, error_score=np.nan, n_jobs=self.n_jobs
+            model,
+            tuned_parameters,
+            cv=cv,
+            verbose=0,
+            error_score=np.nan,
+            n_jobs=self.n_jobs,
         )
 
         with warnings.catch_warnings():
@@ -129,7 +132,7 @@ class SQ(FSmodel):
         return self.model.relevance_classes_
 
     def score(self, X, y):
-        self.model.rfmodel.fit(X,y)
+        self.model.rfmodel.fit(X, y)
         return self.model.rfmodel.score(X, y)
 
     def predict(self, X):

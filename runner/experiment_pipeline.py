@@ -117,7 +117,7 @@ def get_bootstrapped_datasets(datasets, n_bootstraps):
     return datasets
 
 
-def get_models(seed,n_jobs=1):
+def get_models(seed, n_jobs=1):
     # FRI
     fri_model_exc = FRI(random_state=seed, n_jobs=n_jobs)
     # ElasticNet
