@@ -4,18 +4,11 @@ import pathlib
 
 PATH = pathlib.Path("./output/tables/prec_recall_arfs")
 
-from sklearn.utils import check_random_state
-
-
 import dill
 import numpy as np
 import pandas as pd
 
-from sklearn.metrics import precision_score, roc_auc_score, recall_score, f1_score
-
-import matplotlib
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
+from sklearn.metrics import precision_score, recall_score
 
 path = "./runner/results/"
 path = pathlib.Path(path)
@@ -25,7 +18,6 @@ import sys
 sys.path.append("./runner/")
 
 import experiment_pipeline
-import paper_output
 
 toy_set_params = experiment_pipeline.toy_set_params
 
@@ -45,11 +37,6 @@ def get_truthAR(params):
     truth = [2] * strong + [1] * weak + [0] * irrel
     return truth
 
-
-# In[97]:
-
-
-toy_set_params
 
 
 # In[98]:
@@ -158,11 +145,6 @@ strongly_recall = convert_frame(
 strongly = pd.concat([strongly_precision, strongly_recall], axis=1).unstack(level=0).T
 
 
-# In[108]:
-
-
-strongly
-
 
 # In[109]:
 
@@ -177,11 +159,6 @@ combined = pd.concat([weakly, strongly], axis=1, keys=["Weakly", "Strongly"]).ro
     decimals=2
 )
 
-
-# In[111]:
-
-
-combined
 
 
 # In[116]:

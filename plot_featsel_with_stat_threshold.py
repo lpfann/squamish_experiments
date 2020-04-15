@@ -16,28 +16,10 @@ os.makedirs(PATH, exist_ok=True)
 # In[4]:
 
 
-import lightgbm
-
-
-import boruta
-
-import sklearn.feature_selection as fs
-
 import numpy as np
 
 from sklearn.preprocessing import scale
 
-
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from boruta import BorutaPy
-
-from sklearn.model_selection import cross_val_score
-
-import sklearn.feature_selection as fs
-from sklearn.model_selection import ParameterGrid
-
-from sklearn.feature_selection import mutual_info_classif as mi
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -89,5 +71,3 @@ plt.axhline(shadw_bounds[1])
 plt.title("Feature selection with statistical based threshold")
 plt.savefig(PATH / "selection_with_statmethod.pdf")
 
-
-# In[ ]:

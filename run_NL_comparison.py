@@ -1,26 +1,17 @@
-import argparse
 import dataclasses
 import pathlib
-import pickle
 import sys
 from typing import List
 
 import arfs_gen
-import fri
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sklearn as sk
-import sklearn.datasets as data
-import sklearn.metrics
-from sklearn.metrics import precision_score, roc_auc_score, recall_score, f1_score
+from sklearn.metrics import precision_score, recall_score
 from sklearn.preprocessing import scale
 
 sys.path.append("./runner/")
 import experiment_pipeline
-import fsmodel
 import metrics
-import squamish.main
 from utils import print_df_astable
 import click
 
