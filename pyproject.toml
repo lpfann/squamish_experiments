@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "ijcnn_exp"
-version = "0.1.0"
-description = ""
+name = "squamish_experiments"
+version = "0.2.0"
+description = "Experiments used in the squamish paper."
 authors = ["Lukas Pfannschmidt <lukas@lpfann.me>"]
 
 [tool.poetry.dependencies]
