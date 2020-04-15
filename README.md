@@ -17,12 +17,16 @@ Preprints can be found at https://pub.uni-bielefeld.de/record/2942271 or https:/
 
 # Replicate Experiments
 To replicate the experimental results of the paper (figure and tables) we provide a docker image and several scripts to produce a (hopefully) identical output.
-
-Build the image with
+### 1. Get Image
+Build the image yourself with
 ```sh
 docker build -t squamish_experiments .
 ```
-and then run
+or pull it from DockerHub
+```sh
+docker pull mirek1337/squamish_experiments
+```
+### 2. Run container
 ```sh
 docker run -v ./tmp:/exp/tmp:Z -v ./output:/exp/output:Z -it squamish_experiments make 
 ```
