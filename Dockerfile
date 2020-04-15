@@ -1,3 +1,5 @@
+# Dockerfile inspired by  Michael Oliver via https://github.com/michael0liver/python-poetry-docker-example/blob/master/docker/Dockerfile
+
 FROM python:3.8-slim-buster as python-base
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -12,15 +14,12 @@ ENV PYTHONUNBUFFERED=1 \
 
 ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
-
 # builder-base is used to build dependencies
 FROM python-base as builder-base
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y \
-        curl \
-        build-essential\
-        git\
-        cmake
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+    curl \
+    build-essential git cmake
 
 # Install Poetry - respects $POETRY_VERSION & $POETRY_HOME
 ENV POETRY_VERSION=1.0.5
@@ -32,26 +31,28 @@ WORKDIR $PYSETUP_PATH
 COPY ./poetry.lock ./pyproject.toml ./
 RUN poetry install --no-dev
 
-
 FROM python-base as experiments
-
 
 # Copying poetry and venv into image
 COPY --from=builder-base $POETRY_HOME $POETRY_HOME
 COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
 
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y \
-        make\
-        libgomp1
+RUN apt-get update &&\
+    apt-get install --no-install-recommends -y \
+    make libgomp1
 
 WORKDIR /exp
 COPY . .
+# Variables for makefile
+ENV SEED=123 \
+    REPEATS=10\
+    N_THREADS=1
 
 RUN chmod +x ./docker_entrypoint.sh
 ENTRYPOINT ["./docker_entrypoint.sh"]
-
 CMD ["make","all"]
 
+# Temp folder with raw results
 VOLUME [ "/exp/tmp" ]
+# Latex output tables and figures
 VOLUME [ "/exp/output" ]

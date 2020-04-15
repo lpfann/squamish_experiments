@@ -1,3 +1,8 @@
+# Parameters (are overriden in dockerfile or via environment variables)
+SEED ?= 123
+REPEATS ?= 10
+N_THREADS ?= 1
+
 OUTDIR = output
 TMPDIR = tmp
 LINEAR_RESULT_FILE_NAME = paper.dat
@@ -10,7 +15,7 @@ all: $(OUTDIR)/tables/toy_benchmarks $(OUTDIR)/tables/prec_recall_arfs $(OUTDIR)
 .PHONY : clean all test
 
 $(LINEAR_RESULT): runner/experiment_pipeline.py
-		python runner/experiment_pipeline.py --iters 10 --filename "$(LINEAR_RESULT_FILE_NAME)"
+		python runner/experiment_pipeline.py --iters $(REPEATS) --filename $(LINEAR_RESULT_FILE_NAME) --threads $(N_THREADS) --seed $(SEED)
 
 $(OUTDIR)/tables/toy_benchmarks : $(LINEAR_RESULT) runner/paper_output.py
 		python runner/paper_output.py --resfile $(LINEAR_RESULT)
@@ -25,7 +30,7 @@ $(OUTDIR)/figures/featsel_threshold: plot_featsel_with_stat_threshold.py
 		python plot_featsel_with_stat_threshold.py
 
 $(OUTDIR)/tables/NL_toy_benchmarks : run_NL_comparison.py
-		python run_NL_comparison.py
+		python run_NL_comparison.py --seed $(SEED) --repeats $(REPEATS) --n_jobs $(N_THREADS)
 
 clean :
 	rm -r $(OUTDIR)

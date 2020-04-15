@@ -166,7 +166,7 @@ def get_toy_datasets(seed, toy_set_params=toy_set_params, noise=0.0):
 
 def main_exp(
     n_bootstraps=25,
-    SEED=RandomState(1337),
+    seed=RandomState(1337),
     tempres=None,
     selectmodels=None,
     filename="test",
@@ -180,7 +180,7 @@ def main_exp(
     
     Args:
         n_bootstraps (int, optional): How many experiments per Dataset 
-        SEED (TYPE, optional): Random seed
+        seed (TYPE, optional): Random seed
         tempres str: filename of temporary result, which we save when the computation stops in the second experiment 
         selectmodels list of str: Selected Models which we want to test. The model has to be existing in fsmodel.py 
         filename str: Output filename for result file.
@@ -190,14 +190,14 @@ def main_exp(
 
     # Get datasets and create bootstraps and folds in advance
     if toy:
-        datasets = get_toy_datasets(SEED, noise=noise)
+        datasets = get_toy_datasets(seed, noise=noise)
     else:
         raise Exception("Non-Toy data is not included.")
 
     datasets = get_bootstrapped_datasets(datasets, n_bootstraps)
 
     # Get models used in testing
-    models = get_models(SEED)
+    models = get_models(seed)
     if selectmodels is not None:
         models = {k: v for k, v in models.items() if k in selectmodels}
     logger.info(f"models:{models}")
@@ -223,6 +223,7 @@ if __name__ == "__main__":
     parser.add_argument("--models", nargs="*", default=None)
     parser.add_argument("--filename", type=str, default=None)
     parser.add_argument("--toy", type=bool, default=True)
+    parser.add_argument("--seed", type=int, default=123)
     parser.add_argument("--debug", type=bool, default=False)
 
     args = parser.parse_args()
@@ -231,6 +232,7 @@ if __name__ == "__main__":
 
     main_exp(
         n_bootstraps=args.iters,
+        seed =RandomState(args.seed),
         tempres=args.tempresfile,
         selectmodels=args.models,
         filename=args.filename,

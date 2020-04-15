@@ -183,7 +183,7 @@ if __name__ == "__main__":
     toy_set_params = experiment_pipeline.toy_set_params
 
     parser = argparse.ArgumentParser(description="Start experiment manually from CLI")
-    parser.add_argument("--iters", type=int, default=25)
+    parser.add_argument("--iters", type=int, default=10)
     parser.add_argument("--resfile", type=str)
     parser.add_argument("--seed", type=int, default=1337)
     args = parser.parse_args()
